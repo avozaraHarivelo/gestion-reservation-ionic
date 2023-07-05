@@ -1,0 +1,7 @@
+{
+  "name": "GestionReservation",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

@@ -1,16 +1,11 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+import { PageCalendrierComponent } from './components/page-calendrier/page-calendrier.component';
 
 const routes: Routes = [
-  {
-    path: 'home',
-    loadChildren: () => import('./home/home.module').then( m => m.HomePageModule)
-  },
-  {
-    path: '',
-    redirectTo: 'home',
-    pathMatch: 'full'
-  },
+  { path: '', redirectTo: 'reservation', pathMatch: 'full' },
+  { path: 'reservation', component: PageCalendrierComponent },
+  { path: '**', redirectTo: 'reservation' }
 ];
 
 @NgModule({

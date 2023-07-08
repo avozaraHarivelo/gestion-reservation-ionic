@@ -6,12 +6,14 @@ import { StatusbarArg } from '../change-status-bar-arg';
 import { ReservationArg } from '../reservation-arg';
 
 @Component({
-  selector: 'app-canlendrier-reservation',
+  selector: 'app-reservation',
   templateUrl: './canlendrier-reservation.component.html',
   styleUrls: ['./canlendrier-reservation.component.scss'],
 })
 export class CanlendrierReservationComponent  implements OnInit {
 
+  
+  @Input()statusbar :Booking = new Booking()
   @Input() room: Room = new Room();
   @Input() day: DateAndWeek = new DateAndWeek();
   @Input() bookings: Booking[] = [];
@@ -65,7 +67,7 @@ export class CanlendrierReservationComponent  implements OnInit {
     this.isreservedSx = false;
     const list = this.bookings.filter(b => b.roomId === this.room.roomId);
     for (const b of list) {
-      if (this.day.date >= b.startDate &&  this.day.date <= b.endDate) {
+      if (this.day.date >= b.startDate && this.day.date <= b.endDate) {
         this.isreserved = true;
         const d = this.day.date.getTime();
         if (d === b.startDate.getTime() && d !== b.endDate.getTime()) {
@@ -82,6 +84,7 @@ export class CanlendrierReservationComponent  implements OnInit {
       }
     }
   }
+
 
 
 }

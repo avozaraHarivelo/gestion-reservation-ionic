@@ -84,7 +84,7 @@ import {MatDatepickerModule} from '@angular/material/datepicker';
     NativeDateModule,
   ],
   providers: [
-    { provide: MAT_DATE_LOCALE, useValue: 'it-IT' },
+    { provide: MAT_DATE_LOCALE, useValue: 'fr-FR' },
     { provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE] },
     { provide: MAT_DATE_FORMATS, useValue: MAT_MOMENT_DATE_FORMATS },
   ],

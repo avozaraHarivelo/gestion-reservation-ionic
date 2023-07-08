@@ -12,11 +12,22 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { NativeDateModule } from '@angular/material/core';
+import { CalendarComponent } from './calendar/calendar.component';
+import { CalendarNavbarComponent } from './calendar-navbar/calendar-navbar.component';
+import { CanlendrierReservationComponent } from './canlendrier-reservation/canlendrier-reservation.component';
+import { CanlendrierSearchoutComponent } from './calendrier-search/canlendrier-searchout/canlendrier-searchout.component';
+import { CanlendrierSearchinComponent } from './calendrier-search/canlendrier-searchin/canlendrier-searchin.component';
 
 
 
 @NgModule({
-  declarations: [],
+  declarations: [
+    CalendarComponent,
+    CalendarNavbarComponent,
+    CanlendrierReservationComponent,
+    CanlendrierSearchoutComponent,
+    CanlendrierSearchinComponent
+  ],
   imports: [
     CommonModule,
     LayoutModule,
@@ -31,6 +42,17 @@ import { NativeDateModule } from '@angular/material/core';
     MatIconModule,
     MatDatepickerModule,
     NativeDateModule
-  ]
+  ],
+  // entryComponents: [
+  //   CanlendrierSearchinComponent
+  // ],
+  exports: [
+    CalendarComponent,
+    CalendarNavbarComponent,
+    CanlendrierReservationComponent,
+    CanlendrierSearchoutComponent,
+    CanlendrierSearchinComponent
+  ],
+ 
 })
 export class CalendrierModule { }

@@ -2,7 +2,7 @@ import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { SelectReservationArg } from '../../select-reservation-arg';
 
 @Component({
-  selector: 'app-canlendrier-searchout',
+  selector: 'app-calendarsearchbtn',
   templateUrl: './canlendrier-searchout.component.html',
   styleUrls: ['./canlendrier-searchout.component.scss'],
 })

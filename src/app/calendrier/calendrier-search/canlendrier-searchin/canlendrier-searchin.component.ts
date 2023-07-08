@@ -6,14 +6,14 @@ import { SearchReservationArg } from '../../search-reservation-arg';
 import { Person } from 'src/app/models/person';
 
 @Component({
-  selector: 'app-canlendrier-searchin',
+  selector: 'app-calendarsearchover',
   templateUrl: './canlendrier-searchin.component.html',
   styleUrls: ['./canlendrier-searchin.component.scss'],
 })
 export class CanlendrierSearchinComponent  implements OnInit, AfterViewInit {
   @Output() selectreservation = new EventEmitter<SelectReservationArg>();
   @ViewChild('fastsearch')fastsearch!: ElementRef;
-  persons$!: Observable<object>;
+  persons$!:Observable<Person[]>;
   years = '0';
   months = '0';
   name = '';

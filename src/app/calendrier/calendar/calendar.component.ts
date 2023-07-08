@@ -26,7 +26,7 @@ export class CalendarComponent  implements OnInit {
   stepdays: DateAndWeek[] = [];
   stephours: StepHours[] = [];
   headerdays: HeaderDays = new HeaderDays();
-  statusbar: Booking = new Booking();
+  @Input() statusbar: Booking = new Booking();
   manager: DateManager;
 
 
@@ -46,6 +46,7 @@ export class CalendarComponent  implements OnInit {
 
   ngOnInit() { }
 
+  
   onDaysChanged(data: ChangeDateArg) {
     this.headerdays = data.days;
     const startDate = data.days.startDate;
@@ -53,8 +54,14 @@ export class CalendarComponent  implements OnInit {
     const roomtype = data.roomtype;
     const args = new ChangeReservationArg(data.type, data.operation, roomtype, startDate, endDate);
     this.changereservation.emit(args);
+    
   }
 
+   getRandomNumberFromArray(): number {
+    const numbers: number[] = [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40];
+    const randomIndex: number = Math.floor(Math.random() * numbers.length);
+    return numbers[randomIndex];
+  }
   onStatusbarChanged(args: StatusbarArg) {
     if (args.type === 'enter') {
       this.statusbar = args.booking;
@@ -67,4 +74,24 @@ export class CalendarComponent  implements OnInit {
     this.reservation.emit(args);
   }
 
+  isReserved(room: Room, day: DateAndWeek): boolean {
+    return this.bookings.some(b => b.roomId === room.roomId && day.date >= b.startDate && day.date <= b.endDate);
+  }
+  
+  isFirstDayOfReservation(room: Room, day: DateAndWeek): boolean {
+    return this.bookings.some(b => b.roomId === room.roomId && day.date.getTime() === b.startDate.getTime());
+  }
+  
+  getColspan(room: Room, day: DateAndWeek): number {
+    const booking = this.bookings.find(b => b.roomId === room.roomId && day.date >= b.startDate && day.date <= b.endDate);
+    if (booking) {
+      const duration = booking.endDate.getTime() - booking.startDate.getTime();
+      const days = Math.floor(duration / (1000 * 60 * 60 * 24));
+      return days + 1;
+    }
+    return 1;
+  }
+  getRandomInt(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
 }

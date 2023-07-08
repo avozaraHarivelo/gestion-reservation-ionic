@@ -7,7 +7,7 @@ import { SelectReservationArg } from '../select-reservation-arg';
 import { HeaderDays, MonthsDay } from '../models/header-days';
 
 @Component({
-  selector: 'app-calendar-navbar',
+  selector: 'app-calendarnavbar',
   templateUrl: './calendar-navbar.component.html',
   styleUrls: ['./calendar-navbar.component.scss'],
 })

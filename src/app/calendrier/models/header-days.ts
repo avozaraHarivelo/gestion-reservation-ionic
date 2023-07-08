@@ -8,6 +8,7 @@ export class HeaderDays {
   headDays1: DateAndWeek[];
   headDays2: DateAndWeek[];
   months: MonthsDay[];
+  startDayIndex: any;
 
   constructor() {
     this.headDaysAll = [];

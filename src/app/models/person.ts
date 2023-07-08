@@ -4,6 +4,7 @@ export class Person {
   roomNumber: string;
   roomType: number;
   roomTypeName: string;
+  roomState: string;
   startDate: Date;
   endDate: Date;
   stayDay: number;
@@ -15,6 +16,7 @@ export class Person {
     this.roomNumber = '';
     this.roomType = 0;
     this.roomTypeName = '';
+    this.roomState = '';
     this.startDate = new Date();
     this.endDate = new Date();
     this.stayDay = 0;

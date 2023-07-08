@@ -41,7 +41,7 @@ export class ReservationService {
     return of(res);
   }
 
-  getReservationByName(args: SearchReservationArg): Observable<object> {
+  getReservationByName(args: SearchReservationArg): Observable<Person[]> {
     const persons = new Array<Person>();
 
     if (args.year === 0 && args.month === 0 && args.name === '') {
@@ -66,6 +66,8 @@ export class ReservationService {
       p.roomType = b.roomType;
       p.roomNumber = this.getRoomById(p.roomId).roomNumber;
       p.roomTypeName = this.getRoomById(p.roomId).roomTypeName;
+      p.roomState = this.getRoomById(p.roomId).roomState;
+
       p.startDate = b.startDate;
       p.endDate = b.endDate;
       p.stayDay = b.stayDay;
@@ -128,7 +130,12 @@ export class ReservationService {
   }
 
   private maxValue(list: Booking[]): number {
-    return list.reduce((max, p) => p.bookingId > max ? p.bookingId : max, list[0].bookingId);
+    if (list.length === 0) {
+      return 0; // Valeur par défaut si le tableau est vide
+    }
+  
+    const bookingIds = list.map((p) => p.bookingId);
+    return Math.max(...bookingIds);
   }
 
   private cloneBooking(list: Booking[]): Booking[] {
@@ -154,30 +161,35 @@ export class ReservationService {
     room.roomNumber = '100';
     room.roomType = 1;
     room.roomTypeName = 'Single';
+    room.roomState = 'LP';
     r.push(room);
     room = new Room();
     room.roomId = 2;
     room.roomNumber = '101';
     room.roomType = 1;
     room.roomTypeName = 'Single';
+    room.roomState = 'LS';
     r.push(room);
     room = new Room();
     room.roomId = 3;
     room.roomNumber = '102';
     room.roomType = 1;
     room.roomTypeName = 'Single';
+    room.roomState = 'OS';
     r.push(room);
     room = new Room();
     room.roomId = 4;
     room.roomNumber = '104';
     room.roomType = 2;
     room.roomTypeName = 'Double';
+    room.roomState = 'LP';
     r.push(room);
     room = new Room();
     room.roomId = 5;
     room.roomNumber = '105';
     room.roomType = 2;
     room.roomTypeName = 'Double';
+    room.roomState = 'LS';
     r.push(room);
 
     room = new Room();
@@ -185,61 +197,21 @@ export class ReservationService {
     room.roomNumber = '200';
     room.roomType = 1;
     room.roomTypeName = 'Single';
+    room.roomState = 'OS';
     r.push(room);
     room = new Room();
     room.roomId = 7;
     room.roomNumber = '201';
     room.roomType = 1;
     room.roomTypeName = 'Single';
+    room.roomState = 'LP';
     r.push(room);
     room = new Room();
     room.roomId = 8;
     room.roomNumber = '202';
     room.roomType = 1;
     room.roomTypeName = 'Single';
-    r.push(room);
-    room = new Room();
-    room.roomId = 9;
-    room.roomNumber = '204';
-    room.roomType = 2;
-    room.roomTypeName = 'Double';
-    r.push(room);
-    room = new Room();
-    room.roomId = 10;
-    room.roomNumber = '205';
-    room.roomType = 2;
-    room.roomTypeName = 'Double';
-    r.push(room);
-
-    room = new Room();
-    room.roomId = 11;
-    room.roomNumber = '300';
-    room.roomType = 1;
-    room.roomTypeName = 'Single';
-    r.push(room);
-    room = new Room();
-    room.roomId = 12;
-    room.roomNumber = '301';
-    room.roomType = 1;
-    room.roomTypeName = 'Single';
-    r.push(room);
-    room = new Room();
-    room.roomId = 13;
-    room.roomNumber = '302';
-    room.roomType = 1;
-    room.roomTypeName = 'Single';
-    r.push(room);
-    room = new Room();
-    room.roomId = 14;
-    room.roomNumber = '304';
-    room.roomType = 2;
-    room.roomTypeName = 'Double';
-    r.push(room);
-    room = new Room();
-    room.roomId = 15;
-    room.roomNumber = '305';
-    room.roomType = 2;
-    room.roomTypeName = 'Double';
+    room.roomState = 'LS';
     r.push(room);
 
     return r;

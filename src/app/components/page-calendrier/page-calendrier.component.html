@@ -1,3 +1,11 @@
-<p>
-  page-calendrier works!
-</p>
+<div class="pagescheduler">
+  <app-calendar 
+    [day]="day" 
+    [month]="month" 
+    [year]="year"
+    [rooms]="rooms"
+    [bookings]="bookings"
+    (changereservation)="onReservationChanged($event)"
+    (reservation)="onDayReservation($event)">
+  </app-calendar> 
+</div>

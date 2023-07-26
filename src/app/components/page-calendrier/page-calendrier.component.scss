@@ -2,3 +2,27 @@
 .pagescheduler {
     margin: 10px;
 }
+
+#table-container {
+    border: 2px solid black;
+  }
+
+  .grid-container {
+    display: grid;
+    grid-template-columns: repeat(1, 100px) repeat(30, 50px); /* 1 colonne pour les noms des chambres, 30 colonnes pour les jours du mois */
+    /* La hauteur du grid-container est calculée en fonction du nombre de chambres + 1 pour l'en-tête des jours du mois */
+    grid-template-rows: repeat(1, 30px) repeat(6, 50px);
+    gap: 0;
+  }
+
+  .konva-cell {
+    width: 50px;
+    height: 50px;
+    border: 1px solid black;
+    text-align: center;
+    line-height: 50px;
+  }
+
+  .header-cell {
+    font-weight: bold;
+  }

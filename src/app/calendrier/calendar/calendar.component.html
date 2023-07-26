@@ -1,99 +1,18 @@
 <div>
   <div>
-    <app-calendarnavbar 
-      [day]="day"
-      [month]="month"
-      [year]="year"
-      [statusbar]="statusbar"
-      [manager]="manager"
-      (changedays)="onDaysChanged($event)">
-    </app-calendarnavbar>
+    <div class="containerNavigationBar">
+      <div class="panelNavigationBar">
+        <!-- ... Autres éléments du panneau de navigation ... -->
+        <button mat-raised-button color="primary" (click)="onPrevMonth()">Mois précédent</button>&nbsp;
+        <button mat-raised-button color="primary" (click)="onNextMonth()">Mois suivant</button>&nbsp;
+        <button mat-raised-button color="secondary" >Nouvelle réservation</button>
+      </div>
+    </div>
   </div>
 
   <div>
-    <table class="tabreservation"> 
-      <tr class="head">
-        <td colspan="3"></td>
-        <td class="headDaysA" *ngFor="let month of headerdays.months" [attr.colspan]="month.days"> 
-          {{ month.monthName }}
-        </td>
-      </tr>
-      <tr class="head">
-        <td>Chambre</td>
-        <td>Catégorie</td>
-        <td>Etat</td>
-          <td class="headDaysB" *ngFor="let dd of headerdays.headDays1">
-            {{ dd.day}} 
-            <br>
-          
-          </td>
-          <td class="headDaysB" *ngFor="let dd of headerdays.headDays2">
-            {{ dd.day}} 
-            <br>
-          
-          </td>
-      </tr>
-      <tr class="rows" *ngFor="let room of rooms">
-        <td class="rowRooms">
-          {{ room.roomNumber }}
-        </td>
-        <td>
-          {{ room.roomTypeName }}
-        </td>
-        <td>
-          {{ room.roomState }}
-        </td>
-        <ng-container *ngFor="let dd of headerdays.headDaysAll; let i = index">
-          <ng-container *ngIf="isReserved(room, dd)">
-            <ng-container *ngIf="isFirstDayOfReservation(room, dd)">
-              <td [attr.colspan]="getColspan(room, dd)" class="reservation">
-   
-                <app-reservation 
-                  [statusbar]="statusbar"
-                  [room]="room" 
-                  [day]="dd" 
-                  [bookings]="bookings"
-                  (changestatusbar)="onStatusbarChanged($event)"
-                  (reservation)="onDayReservation($event)"
-                 >
-                </app-reservation>
-              </td>
-            </ng-container>
-          </ng-container>
-          <ng-container *ngIf="!isReserved(room, dd)">
-            <td class="hover">
-              <app-reservation 
-                [room]="room" 
-                [day]="dd" 
-                [bookings]="bookings"
-                (changestatusbar)="onStatusbarChanged($event)"
-                (reservation)="onDayReservation($event)">
-              </app-reservation>
-            </td>
-          </ng-container>
-        </ng-container>
-      </tr>
-     <tr class="head">
-        <td colspan="3">Catég(D)</td>
-        <td class="headDaysA" *ngFor="let dd of headerdays.headDaysAll" > 
-       29
-
-        </td>
-      </tr>
-  <tr class="head">
-        <td colspan="3">STTW/20</td>
-        <td class="headDaysA" *ngFor="let dd of headerdays.headDaysAll" > 
-        11
-        </td>
-      </tr>
-      <tr class="head">
-        <td colspan="3">SUITE/4</td>
-        <td class="headDaysA" *ngFor="let dd of headerdays.headDaysAll" > 
-         12
-
-        </td>
-      </tr> 
-      
-    </table>
+     <div id="canvas-container" style="width: 100%; overflow-x: scroll;">
+    <div id="table-container"></div>
+  </div>
   </div>
 </div>

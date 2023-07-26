@@ -15,8 +15,8 @@ import { NativeDateModule } from '@angular/material/core';
 import { CalendarComponent } from './calendar/calendar.component';
 import { CalendarNavbarComponent } from './calendar-navbar/calendar-navbar.component';
 import { CanlendrierReservationComponent } from './canlendrier-reservation/canlendrier-reservation.component';
-import { CanlendrierSearchoutComponent } from './calendrier-search/canlendrier-searchout/canlendrier-searchout.component';
-import { CanlendrierSearchinComponent } from './calendrier-search/canlendrier-searchin/canlendrier-searchin.component';
+//import { CanlendrierSearchoutComponent } from './calendrier-search/canlendrier-searchout/canlendrier-searchout.component';
+//import { CanlendrierSearchinComponent } from './calendrier-search/canlendrier-searchin/canlendrier-searchin.component';
 
 
 
@@ -25,8 +25,8 @@ import { CanlendrierSearchinComponent } from './calendrier-search/canlendrier-se
     CalendarComponent,
     CalendarNavbarComponent,
     CanlendrierReservationComponent,
-    CanlendrierSearchoutComponent,
-    CanlendrierSearchinComponent
+   // CanlendrierSearchoutComponent,
+   // CanlendrierSearchinComponent
   ],
   imports: [
     CommonModule,
@@ -50,8 +50,8 @@ import { CanlendrierSearchinComponent } from './calendrier-search/canlendrier-se
     CalendarComponent,
     CalendarNavbarComponent,
     CanlendrierReservationComponent,
-    CanlendrierSearchoutComponent,
-    CanlendrierSearchinComponent
+    //CanlendrierSearchoutComponent,
+   // CanlendrierSearchinComponent
   ],
  
 })

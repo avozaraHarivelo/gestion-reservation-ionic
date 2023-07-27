@@ -6,15 +6,13 @@ import { ReservationArg } from '../reservation-arg';
 import { DateAndWeek, DateManager, StepHours } from '../date-manager';
 import { HeaderDays } from '../models/header-days';
 import { CalendarNavbarComponent } from '../calendar-navbar/calendar-navbar.component';
-import { ChangeDateArg } from '../change-date-arg';
-import { StatusbarArg } from '../change-status-bar-arg';
 import Konva from 'konva';
 import { MatDialog } from '@angular/material/dialog';
 import { NewReservationModalComponent } from 'src/app/components/new-reservation-modal/new-reservation-modal.component';
 import { Layer } from 'konva/lib/Layer';
-import { Stage } from 'konva/lib/Stage';
 import { RoomService } from 'src/app/service/room-service';
 import { ReservationService } from 'src/app/service/reservation-service';
+import { FormReservationComponent } from 'src/app/components/form-reservation/form-reservation.component';
 
 @Component({
   selector: 'app-calendar',
@@ -25,10 +23,8 @@ export class CalendarComponent implements OnInit {
   @Input() year: number = 0;
   @Input() month: number = 0;
   @Input() day: number = 0;
-  // @Input() rooms: Room[];
   rooms: Room[] = []; // Initialisez ici votre tableau de chambres
-  bookings: Booking[] = []; 
-  // @Input() bookings: Booking[];
+  bookings: Booking[] = [];
   @Output() changereservation = new EventEmitter<ChangeReservationArg>();
   @Output() reservation = new EventEmitter<ReservationArg>();
   @ViewChild(CalendarNavbarComponent) navbar: any;
@@ -37,7 +33,7 @@ export class CalendarComponent implements OnInit {
   headerdays: HeaderDays = new HeaderDays();
   @Input() statusbar: Booking = new Booking();
   manager: DateManager;
-  tableLayer: Konva.Layer = new Layer; 
+  tableLayer: Konva.Layer = new Layer;
 
   currentMonth: number = 6; // Exemple : juillet (0 pour janvier, 1 pour février, ..., 11 pour décembre)
   currentYear: number = 2023; // Exemple : 2023
@@ -51,23 +47,10 @@ export class CalendarComponent implements OnInit {
 
 
 
-  //variable test
-
-   selectedRoom: Room = {
-    roomId: 1,
-    name: 'Chambre 101',
-    category: 'Catégorie A',
-    type: 'Simple',
-    // ... autres propriétés de la chambre ...
-  };
-  
-   startDate = new Date(2023, 6, 15); // 15 juillet 2023
-   endDate = new Date(2023, 6, 20);   // 20 juillet 2023
-
-  constructor(private dialog: MatDialog,private roomService: RoomService,private reservationService:ReservationService) {
+  constructor(private dialog: MatDialog, private roomService: RoomService, private reservationService: ReservationService) {
     this.manager = new DateManager();
     this.rooms = this.roomService.getRooms(); // Récupérez la liste des chambres à partir du service
-   
+
     this.reservationService.getBookings().subscribe((bookings: Booking[]) => {
       this.bookings = bookings;
       this.updateCalendar(); // Appelez la mise à jour du calendrier une fois que vous avez les réservations
@@ -90,6 +73,8 @@ export class CalendarComponent implements OnInit {
     });
     this.updateCalendar();
 
+
+
     // Écouter l'événement reservationAdded du composant NewReservationModalComponent
     this.dialog.afterAllClosed.subscribe(() => {
       this.reservationService.getBookings().subscribe((bookings: Booking[]) => {
@@ -108,14 +93,14 @@ export class CalendarComponent implements OnInit {
       width: '400px', // Définir la largeur de la boîte de dialogue
       // Vous pouvez également définir d'autres options de boîte de dialogue ici si nécessaire
     });
-  
+
     // Souscrire à l'événement de fermeture de la boîte de dialogue
     dialogRef.afterClosed().subscribe(result => {
       // Traiter le résultat de la boîte de dialogue ici si nécessaire
       console.log('Résultat de la boîte de dialogue :', result);
     });
   }
-  
+
 
 
 
@@ -138,10 +123,10 @@ export class CalendarComponent implements OnInit {
   }
 
 
-  public createReservationCell(tableStage: Konva.Stage,selectedRoom: Room, startDate: Date, endDate: Date) {
+  public createReservationCell(tableStage: Konva.Stage, selectedRoom: Room, startDate: Date, endDate: Date) {
     const cellWidthDay = this.cellWidthDay;
     const cellHeight = this.cellHeight;
-    const cellWidthRoom=this.cellWidthRoom
+    const cellWidthRoom = this.cellWidthRoom
 
 
     // Calculer les positions x et y de la cellule en fonction de la date de début et de fin
@@ -165,44 +150,49 @@ export class CalendarComponent implements OnInit {
 
     // Gérer les événements de déplacement et de redimensionnement
 
-  // Événement dragstart pour mettre la cellule au-dessus des autres
-  draggableCell.on('dragstart', () => {
-    draggableCell.moveToTop();
-    this.tableLayer.draw();
-  });
-
-  // Événement dragend pour ajuster la position de la cellule après le déplacement
-  draggableCell.on('dragend', (e) => {
-    var newPosition = e.target.position();
-
-    // Ajuster le calcul en fonction de la nouvelle largeur des cellules
-    var cellX = Math.floor((newPosition.x - cellWidthRoom * 3) / cellWidthDay);
-    var cellY = Math.floor((newPosition.y - 30) / cellHeight); // 30 est la hauteur de l'en-tête des jours du mois
-
-    // Appliquer la nouvelle position
-    draggableCell.position({
-      x: cellWidthRoom * 3 + cellX * cellWidthDay,
-      y: cellY * cellHeight + 30, // À partir de la ligne 30 pour l'en-tête des jours du mois
+    // Événement dragstart pour mettre la cellule au-dessus des autres
+    draggableCell.on('dragstart', () => {
+      draggableCell.moveToTop();
+      this.tableLayer.draw();
     });
 
-    this.tableLayer.draw();
-  });
+    // Ajouter l'écouteur d'événements de double-clic pour la cellule de réservation
+    draggableCell.on('dblclick', () => {
+      this.openReservationModal(selectedRoom, startDate, endDate);
+    });
 
-  // Événement dragmove pour limiter le mouvement et la position de la cellule bleue
-  draggableCell.on('dragmove', (e) => {
-    var newPosition = e.target.position();
-    var maxX = tableStage.width() - cellWidthDay;
-    var maxY = tableStage.height() - cellHeight;
+    // Événement dragend pour ajuster la position de la cellule après le déplacement
+    draggableCell.on('dragend', (e) => {
+      var newPosition = e.target.position();
 
-    // Limiter le mouvement aux cellules vides (jours du mois)
-    newPosition.y = Math.max(newPosition.y, 80);
-    newPosition.x = Math.max(newPosition.x, cellWidthRoom*3);
-    newPosition.x = Math.min(newPosition.x, maxX);
-    newPosition.y = Math.min(newPosition.y, maxY);
+      // Ajuster le calcul en fonction de la nouvelle largeur des cellules
+      var cellX = Math.floor((newPosition.x - cellWidthRoom * 3) / cellWidthDay);
+      var cellY = Math.floor((newPosition.y - 30) / cellHeight); // 30 est la hauteur de l'en-tête des jours du mois
 
-    e.target.position(newPosition);
-    this.tableLayer.draw();
-  });
+      // Appliquer la nouvelle position
+      draggableCell.position({
+        x: cellWidthRoom * 3 + cellX * cellWidthDay,
+        y: cellY * cellHeight + 30, // À partir de la ligne 30 pour l'en-tête des jours du mois
+      });
+
+      this.tableLayer.draw();
+    });
+
+    // Événement dragmove pour limiter le mouvement et la position de la cellule bleue
+    draggableCell.on('dragmove', (e) => {
+      var newPosition = e.target.position();
+      var maxX = tableStage.width() - cellWidthDay;
+      var maxY = tableStage.height() - cellHeight;
+
+      // Limiter le mouvement aux cellules vides (jours du mois)
+      newPosition.y = Math.max(newPosition.y, 80);
+      newPosition.x = Math.max(newPosition.x, cellWidthRoom * 3);
+      newPosition.x = Math.min(newPosition.x, maxX);
+      newPosition.y = Math.min(newPosition.y, maxY);
+
+      e.target.position(newPosition);
+      this.tableLayer.draw();
+    });
 
 
     // Gérer les événements de déplacement et de redimensionnement si nécessaire
@@ -210,51 +200,51 @@ export class CalendarComponent implements OnInit {
     // Ajouter la cellule bleue et le Transformer au calque
     this.tableLayer.add(draggableCell);
     // Créer un Transformer pour le redimensionnement de la cellule bleue
-  var tr = new Konva.Transformer({
-    rotateEnabled: false, // Désactiver la rotation
-    enabledAnchors: ['middle-right'], // Activer uniquement les poignées de redimensionnement droite
-    boundBoxFunc: (oldBox, newBox) => {
-      // Calculer la largeur initiale de la cellule bleue
-      var initialWidth = cellWidthDay * Math.ceil(oldBox.width / cellWidthDay);
+    var tr = new Konva.Transformer({
+      rotateEnabled: false, // Désactiver la rotation
+      enabledAnchors: ['middle-right'], // Activer uniquement les poignées de redimensionnement droite
+      boundBoxFunc: (oldBox, newBox) => {
+        // Calculer la largeur initiale de la cellule bleue
+        var initialWidth = cellWidthDay * Math.ceil(oldBox.width / cellWidthDay);
 
-      // Trouver le multiple le plus proche de cellWidthDay pour la nouvelle largeur
-      var closestMultiple = cellWidthDay * Math.round(newBox.width / cellWidthDay);
+        // Trouver le multiple le plus proche de cellWidthDay pour la nouvelle largeur
+        var closestMultiple = cellWidthDay * Math.round(newBox.width / cellWidthDay);
 
-      // Limiter la largeur minimale de la cellule bleue à cellWidthDay
-      if (newBox.width < cellWidthDay) {
-        newBox.width = cellWidthDay;
-      }
+        // Limiter la largeur minimale de la cellule bleue à cellWidthDay
+        if (newBox.width < cellWidthDay) {
+          newBox.width = cellWidthDay;
+        }
 
-      // Limiter la largeur maximale de la cellule bleue à cellWidthRoom
-      if (newBox.width > cellWidthRoom) {
-        newBox.width = cellWidthRoom;
-      }
+        // Limiter la largeur maximale de la cellule bleue à cellWidthRoom
+        if (newBox.width > cellWidthRoom) {
+          newBox.width = cellWidthRoom;
+        }
 
-      // Utiliser le multiple le plus proche de cellWidthDay pour ajuster la largeur
-      newBox.width = closestMultiple;
+        // Utiliser le multiple le plus proche de cellWidthDay pour ajuster la largeur
+        newBox.width = closestMultiple;
 
-      return newBox;
-    },
-  });
+        return newBox;
+      },
+    });
 
-  // Ajouter le Transformer au calque
-  this.tableLayer.add(tr);
+    // Ajouter le Transformer au calque
+    this.tableLayer.add(tr);
 
-  // Lier le Transformer à la cellule bleue
-  tr.nodes([draggableCell]);
+    // Lier le Transformer à la cellule bleue
+    tr.nodes([draggableCell]);
 
-  // Redessiner le calque
-  this.tableLayer.draw();
+    // Redessiner le calque
+    this.tableLayer.draw();
   }
 
   updateCalendar() {
-// console.log(this.bookings)
-   
-// Variables locales pour stocker les valeurs globales
-const cellWidthRoom = this.cellWidthRoom;
-const cellWidthDay = this.cellWidthDay;
+    // console.log(this.bookings)
 
-    
+    // Variables locales pour stocker les valeurs globales
+    const cellWidthRoom = this.cellWidthRoom;
+    const cellWidthDay = this.cellWidthDay;
+
+
 
     var monthDays = getDaysInMonth(this.currentYear, this.currentMonth);
 
@@ -451,55 +441,55 @@ const cellWidthDay = this.cellWidthDay;
     this.tableLayer.draw();
 
 
-     // Maintenant, bouclez à travers les réservations et appelez createReservationCell pour chaque réservation
-  for (const booking of this.bookings) {
+    // Maintenant, bouclez à travers les réservations et appelez createReservationCell pour chaque réservation
+    for (const booking of this.bookings) {
       // Vous devrez peut-être adapter cette partie en fonction de la structure de vos objets de réservation.
       const room = this.rooms.find((room) => room.roomId === booking.roomId);
 
-    // Vérifier que la chambre existe dans la liste des chambres
-    if (room) {
-      // Vous devrez peut-être adapter cette partie en fonction de la structure de vos objets de réservation.
-      const startDate = new Date(booking.startDate); // Assurez-vous que la date est correctement formatée en tant que Date.
-      const endDate = new Date(booking.endDate); // Assurez-vous que la date est correctement formatée en tant que Date.
+      // Vérifier que la chambre existe dans la liste des chambres
+      if (room) {
+        // Vous devrez peut-être adapter cette partie en fonction de la structure de vos objets de réservation.
+        const startDate = new Date(booking.startDate); // Assurez-vous que la date est correctement formatée en tant que Date.
+        const endDate = new Date(booking.endDate); // Assurez-vous que la date est correctement formatée en tant que Date.
 
-      // Appelez createReservationCell pour cette réservation spécifique et la chambre correspondante
-      this.createReservationCell(tableStage, room, startDate, endDate);
-    }
-    }
-
-
-// Créer un Transformer pour le redimensionnement de la cellule bleue
-const tr = new Konva.Transformer({
-  rotateEnabled: false,
-  enabledAnchors: ['middle-right'],
-  boundBoxFunc: function (oldBox, newBox) {
-    // Utiliser les variables locales pour les calculs
-    const initialWidth = cellWidthDay * Math.ceil(oldBox.width / cellWidthDay);
-    const closestMultiple = cellWidthDay * Math.round(newBox.width / cellWidthDay);
-
-    // Limiter la largeur minimale de la cellule bleue à cellWidthDay
-    if (newBox.width < cellWidthDay) {
-      newBox.width = cellWidthDay;
+        // Appelez createReservationCell pour cette réservation spécifique et la chambre correspondante
+        this.createReservationCell(tableStage, room, startDate, endDate);
+      }
     }
 
-    // Limiter la largeur maximale de la cellule bleue à cellWidthRoom
-    if (newBox.width > cellWidthRoom) {
-      newBox.width = cellWidthRoom;
-    }
 
-    // Utiliser le multiple le plus proche de cellWidthDay pour ajuster la largeur
-    newBox.width = closestMultiple;
+    // Créer un Transformer pour le redimensionnement de la cellule bleue
+    const tr = new Konva.Transformer({
+      rotateEnabled: false,
+      enabledAnchors: ['middle-right'],
+      boundBoxFunc: function (oldBox, newBox) {
+        // Utiliser les variables locales pour les calculs
+        const initialWidth = cellWidthDay * Math.ceil(oldBox.width / cellWidthDay);
+        const closestMultiple = cellWidthDay * Math.round(newBox.width / cellWidthDay);
 
-    return newBox;
-  },
-});
+        // Limiter la largeur minimale de la cellule bleue à cellWidthDay
+        if (newBox.width < cellWidthDay) {
+          newBox.width = cellWidthDay;
+        }
 
-// Ajouter la cellule bleue et le Transformer au calque
-// this.tableLayer.add(draggableCell);
-this.tableLayer.add(tr);
+        // Limiter la largeur maximale de la cellule bleue à cellWidthRoom
+        if (newBox.width > cellWidthRoom) {
+          newBox.width = cellWidthRoom;
+        }
 
-// Lier le Transformer à la cellule bleue
-// tr.nodes([draggableCell]);
+        // Utiliser le multiple le plus proche de cellWidthDay pour ajuster la largeur
+        newBox.width = closestMultiple;
+
+        return newBox;
+      },
+    });
+
+    // Ajouter la cellule bleue et le Transformer au calque
+    // this.tableLayer.add(draggableCell);
+    this.tableLayer.add(tr);
+
+    // Lier le Transformer à la cellule bleue
+    // tr.nodes([draggableCell]);
 
     // Ajuster dynamiquement la taille de la bordure en fonction de la taille du contenu du stage
     function adjustStageBorder() {
@@ -522,52 +512,47 @@ this.tableLayer.add(tr);
 
   }
 
-
-  onDaysChanged(data: ChangeDateArg) {
-    this.headerdays = data.days;
-    const startDate = data.days.startDate;
-    const endDate = data.days.endDate;
-    const roomtype = data.roomtype;
-    const args = new ChangeReservationArg(data.type, data.operation, roomtype, startDate, endDate);
-    this.changereservation.emit(args);
-
-  }
-
-  getRandomNumberFromArray(): number {
-    const numbers: number[] = [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40];
-    const randomIndex: number = Math.floor(Math.random() * numbers.length);
-    return numbers[randomIndex];
-  }
-  onStatusbarChanged(args: StatusbarArg) {
-    if (args.type === 'enter') {
-      this.statusbar = args.booking;
-    } else {
-      this.statusbar = new Booking;
+  // Fonction pour rechercher le bookingId correspondant
+  findBookingId(selectedRoom: any, startDate: Date, endDate: Date): number | undefined {
+    // Parcourez la liste des réservations
+    for (const booking of this.bookings) {
+      // Vérifiez si la chambre correspond
+      if (booking.roomId === selectedRoom.roomId) {
+        // Vérifiez si les dates correspondent (supposons que startDate et endDate sont les mêmes qu'enregistrées dans la réservation)
+        if (booking.startDate.getTime() === startDate.getTime() && booking.endDate.getTime() === endDate.getTime()) {
+          // Si la chambre et les dates correspondent, renvoyez le bookingId correspondant
+          return booking.bookingId;
+        }
+      }
     }
+
+    // Si aucun bookingId correspondant n'est trouvé, renvoyez undefined
+    return undefined;
   }
 
-  onDayReservation(args: ReservationArg) {
-    this.reservation.emit(args);
-  }
 
-  isReserved(room: Room, day: DateAndWeek): boolean {
-    return this.bookings.some(b => b.roomId === room.roomId && day.date >= b.startDate && day.date <= b.endDate);
-  }
+  private openReservationModal(room: any, startDate: Date, endDate: Date) {
 
-  isFirstDayOfReservation(room: Room, day: DateAndWeek): boolean {
-    return this.bookings.some(b => b.roomId === room.roomId && day.date.getTime() === b.startDate.getTime());
-  }
+    // Ouvrir le modal en utilisant le service MatDialog
+    const dialogRef = this.dialog.open(FormReservationComponent, {
+      data: {
 
-  getColspan(room: Room, day: DateAndWeek): number {
-    const booking = this.bookings.find(b => b.roomId === room.roomId && day.date >= b.startDate && day.date <= b.endDate);
-    if (booking) {
-      const duration = booking.endDate.getTime() - booking.startDate.getTime();
-      const days = Math.floor(duration / (1000 * 60 * 60 * 24));
-      return days + 1;
-    }
-    return 1;
-  }
-  getRandomInt(min: number, max: number): number {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+        roomid: room.id, // Passer l'ID de la chambre
+        booking: {
+          bookingId: this.findBookingId(room, startDate, endDate),
+          roomId: room.id, // Vous pouvez également passer d'autres détails de réservation si nécessaire
+          startDate: startDate,
+          endDate: endDate,
+          // Autres détails de réservation ici...
+        },
+        rooms: this.rooms // Passer la liste des chambres au modal
+      }
+    });
+
+    // Vous pouvez également ajouter une logique supplémentaire pour gérer la fermeture du modal
+    dialogRef.afterClosed().subscribe(result => {
+      // Faire quelque chose après la fermeture du modal si nécessaire
+      console.log('Modal closed:', result);
+    });
   }
 }

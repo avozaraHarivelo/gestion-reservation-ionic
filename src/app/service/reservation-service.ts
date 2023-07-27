@@ -16,15 +16,15 @@ export class ReservationService {
     {
       bookingId: 1,
       roomId: 1,
-      startDate: new Date(2023, 7, 1), // Exemple de date de début (année, mois (indexé à partir de 0), jour)
-      endDate: new Date(2023, 7, 5),   // Exemple de date de fin
+      startDate: new Date(2023, 6, 1), // Exemple de date de début (année, mois (indexé à partir de 0), jour)
+      endDate: new Date(2023, 6, 5),   // Exemple de date de fin
       name: 'Réservation 1'           // Nom de la réservation
     },
     {
       bookingId: 2,
       roomId: 3,
-      startDate: new Date(2023, 7, 10),
-      endDate: new Date(2023, 7, 15),
+      startDate: new Date(2023, 6, 10),
+      endDate: new Date(2023, 6, 15),
       name: 'Réservation 2'
     },
     // Ajoutez d'autres réservations ici...
@@ -123,33 +123,33 @@ export class ReservationService {
     return of('ok');
   }
 
-  // updateReservation(booking: Booking): Observable<string> {
-  //   const list = this.getAllBooking();
+  updateReservation(booking: Booking): Observable<string> {
+    const list = this.getAllBooking();
+console.log(booking)
+    for (const item of list) {
+      if (booking.bookingId !== item.bookingId && booking.roomId === item.roomId) {
+        if (booking.startDate >= item.startDate && booking.startDate < item.endDate) {
+          return throwError('wrong startDate: ' + this.formatGMY(booking.startDate));
+        }
+        if (booking.endDate > item.startDate && booking.startDate < item.endDate) {
+          return throwError('wrong endDate: ' + this.formatGMY(booking.endDate));
+        }
+      }
+    }
+    const index = list.findIndex(x => x.bookingId === booking.bookingId);
+    list[index] = booking;
 
-  //   for (const item of list) {
-  //     if (booking.bookingId !== item.bookingId && booking.roomId === item.roomId) {
-  //       if (booking.startDate >= item.startDate && booking.startDate < item.endDate) {
-  //         return throwError('wrong startDate: ' + this.formatGMY(booking.startDate));
-  //       }
-  //       if (booking.endDate > item.startDate && booking.startDate < item.endDate) {
-  //         return throwError('wrong endDate: ' + this.formatGMY(booking.endDate));
-  //       }
-  //     }
-  //   }
-  //   const index = list.findIndex(x => x.bookingId === booking.bookingId);
-  //   list[index] = booking;
+    return of('ok');
+  }
 
-  //   return of('ok');
-  // }
+  deleteReservation(id: number): Observable<string> {
+    const list = this.getAllBooking();
 
-  // deleteReservation(id: number): Observable<string> {
-  //   const list = this.getAllBooking();
+    const index = list.findIndex(x => x.bookingId === id);
+    list.splice(index, 1);
 
-  //   const index = list.findIndex(x => x.bookingId === id);
-  //   list.splice(index, 1);
-
-  //   return of('ok');
-  // }
+    return of('ok');
+  }
 
   private formatGMY(date: Date): string {
     return date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();

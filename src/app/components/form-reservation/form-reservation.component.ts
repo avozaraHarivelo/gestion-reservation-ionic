@@ -44,45 +44,45 @@ export class FormReservationComponent implements OnInit {
     });
   }
 
-  onConfirm(form: NgForm) {
-    if (form.invalid === true) {
-      return;
-    }
-    const vm = new Booking();
-    vm.bookingId = this.booking.bookingId;
-    vm.roomId = Utility.toInteger(form.value.roomid);
-    vm.startDate = Utility.toDate(form.value.startDate);
-    vm.endDate = Utility.toDate(form.value.endDate);
-    vm.name = Utility.toString(form.value.name);
-    //
-    if (vm.endDate < vm.startDate) {
-      alert('Attention: startDate > endDate');
-      return;
-    }
-    const index = this.rooms.findIndex((x: { roomId: number; }) => x.roomId === vm.roomId);
-    vm.roomType = this.rooms[index].roomType;
-    this.computeStayDay(vm.startDate, vm.endDate);
-    //
-    if (vm.bookingId === 0) {
-      this.service.insertReservation(vm).subscribe(
-        result => this.dialogRef.close(result),
-        error => alert(error)
-      );
-    } else {
-      this.service.updateReservation(vm).subscribe(
-        result => this.dialogRef.close(result),
-        error => alert(error)
-      );
-    }
-  }
+  // onConfirm(form: NgForm) {
+  //   if (form.invalid === true) {
+  //     return;
+  //   }
+  //   const vm = new Booking();
+  //   vm.bookingId = this.booking.bookingId;
+  //   vm.roomId = Utility.toInteger(form.value.roomid);
+  //   vm.startDate = Utility.toDate(form.value.startDate);
+  //   vm.endDate = Utility.toDate(form.value.endDate);
+  //   vm.name = Utility.toString(form.value.name);
+  //   //
+  //   if (vm.endDate < vm.startDate) {
+  //     alert('Attention: startDate > endDate');
+  //     return;
+  //   }
+  //   const index = this.rooms.findIndex((x: { roomId: number; }) => x.roomId === vm.roomId);
+  //   vm.roomType = this.rooms[index].roomType;
+  //   this.computeStayDay(vm.startDate, vm.endDate);
+  //   //
+  //   if (vm.bookingId === 0) {
+  //     this.service.insertReservation(vm).subscribe(
+  //       result => this.dialogRef.close(result),
+  //       error => alert(error)
+  //     );
+  //   } else {
+  //     this.service.updateReservation(vm).subscribe(
+  //       result => this.dialogRef.close(result),
+  //       error => alert(error)
+  //     );
+  //   }
+  // }
 
-  onDelete() {
-    const id = this.booking.bookingId;
-    this.service.deleteReservation(id).subscribe(
-      result => this.dialogRef.close(result),
-      error => alert(error)
-    );
-  }
+  // onDelete() {
+  //   const id = this.booking.bookingId;
+  //   this.service.deleteReservation(id).subscribe(
+  //     result => this.dialogRef.close(result),
+  //     error => alert(error)
+  //   );
+  // }
 
   onClose() {
     this.dialogRef.close('no');

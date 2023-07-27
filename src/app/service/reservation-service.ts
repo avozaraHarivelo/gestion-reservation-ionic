@@ -11,7 +11,24 @@ import { SearchReservationArg } from "../calendrier/search-reservation-arg";
 
 @Injectable()
 export class ReservationService {
-  bookings: Booking[]= [];
+  private bookings: Booking[] = [
+    // Liste de vos réservations locales
+    {
+      bookingId: 1,
+      roomId: 1,
+      startDate: new Date(2023, 7, 1), // Exemple de date de début (année, mois (indexé à partir de 0), jour)
+      endDate: new Date(2023, 7, 5),   // Exemple de date de fin
+      name: 'Réservation 1'           // Nom de la réservation
+    },
+    {
+      bookingId: 2,
+      roomId: 3,
+      startDate: new Date(2023, 7, 10),
+      endDate: new Date(2023, 7, 15),
+      name: 'Réservation 2'
+    },
+    // Ajoutez d'autres réservations ici...
+  ];
 
   constructor(private http: HttpClient) {}
 
@@ -23,60 +40,69 @@ export class ReservationService {
     return of(rooms);
   }
 
-  getReservations(args: ChangeReservationArg): Observable<object> {
-    const res = new Reservation();
 
-    let list1 = this.getAllRoom();
-    if (args.roomtype !== 0) {
-      list1 = list1.filter(l => l.roomType === args.roomtype);
-    }
-    res.rooms  = list1;
+  getBookings(): Observable<Booking[]> {
+    let bookings: Booking[];
 
-    let list2 = this.getAllBooking();
-    if (args.roomtype !== 0) {
-      list2 = list2.filter(l => l.roomType === args.roomtype);
-    }
-    res.bookings = list2;
+    bookings = this.getAllBooking();
 
-    return of(res);
+    return of(bookings);
   }
 
-  getReservationByName(args: SearchReservationArg): Observable<Person[]> {
-    const persons = new Array<Person>();
+  // getReservations(args: ChangeReservationArg): Observable<object> {
+  //   const res = new Reservation();
 
-    if (args.year === 0 && args.month === 0 && args.name === '') {
-      return of(persons);
-    }
+  //   let list1 = this.getAllRoom();
+  //   if (args.roomtype !== 0) {
+  //     list1 = list1.filter(l => l.roomType === args.roomtype);
+  //   }
+  //   res.rooms  = list1;
 
-    let list = this.getAllBooking();
-    if (args.year !== 0) {
-      list = list.filter(l => l.startDate.getFullYear() === args.year);
-    }
-    if (args.month !== 0) {
-      list = list.filter(l => l.startDate.getMonth() === args.month - 1);
-    }
-    if (args.name !== '') {
-      list = list.filter(l => l.name.startsWith(args.name) === true);
-    }
+  //   let list2 = this.getAllBooking();
+  //   if (args.roomtype !== 0) {
+  //     list2 = list2.filter(l => l.roomType === args.roomtype);
+  //   }
+  //   res.bookings = list2;
 
-    for (const b of list) {
-      const p = new Person();
-      p.bookingId = b.bookingId;
-      p.roomId = b.roomId;
-      p.roomType = b.roomType;
-      p.roomNumber = this.getRoomById(p.roomId).roomNumber;
-      p.roomTypeName = this.getRoomById(p.roomId).roomTypeName;
-      p.roomState = this.getRoomById(p.roomId).roomState;
+  //   return of(res);
+  // }
 
-      p.startDate = b.startDate;
-      p.endDate = b.endDate;
-      p.stayDay = b.stayDay;
-      p.name = b.name;
-      persons.push(p);
-    }
+  // getReservationByName(args: SearchReservationArg): Observable<Person[]> {
+  //   const persons = new Array<Person>();
 
-    return of(persons);
-  }
+  //   if (args.year === 0 && args.month === 0 && args.name === '') {
+  //     return of(persons);
+  //   }
+
+  //   let list = this.getAllBooking();
+  //   if (args.year !== 0) {
+  //     list = list.filter(l => l.startDate.getFullYear() === args.year);
+  //   }
+  //   if (args.month !== 0) {
+  //     list = list.filter(l => l.startDate.getMonth() === args.month - 1);
+  //   }
+  //   if (args.name !== '') {
+  //     list = list.filter(l => l.name.startsWith(args.name) === true);
+  //   }
+
+  //   for (const b of list) {
+  //     const p = new Person();
+  //     p.bookingId = b.bookingId;
+  //     p.roomId = b.roomId;
+  //     p.roomType = b.roomType;
+  //     p.roomNumber = this.getRoomById(p.roomId).roomNumber;
+  //     p.roomTypeName = this.getRoomById(p.roomId).roomTypeName;
+  //     p.roomState = this.getRoomById(p.roomId).roomState;
+
+  //     p.startDate = b.startDate;
+  //     p.endDate = b.endDate;
+  //     p.stayDay = b.stayDay;
+  //     p.name = b.name;
+  //     persons.push(p);
+  //   }
+
+  //   return of(persons);
+  // }
 
   insertReservation(booking: Booking): Observable<string> {
     const list = this.getAllBooking();
@@ -97,33 +123,33 @@ export class ReservationService {
     return of('ok');
   }
 
-  updateReservation(booking: Booking): Observable<string> {
-    const list = this.getAllBooking();
+  // updateReservation(booking: Booking): Observable<string> {
+  //   const list = this.getAllBooking();
 
-    for (const item of list) {
-      if (booking.bookingId !== item.bookingId && booking.roomId === item.roomId) {
-        if (booking.startDate >= item.startDate && booking.startDate < item.endDate) {
-          return throwError('wrong startDate: ' + this.formatGMY(booking.startDate));
-        }
-        if (booking.endDate > item.startDate && booking.startDate < item.endDate) {
-          return throwError('wrong endDate: ' + this.formatGMY(booking.endDate));
-        }
-      }
-    }
-    const index = list.findIndex(x => x.bookingId === booking.bookingId);
-    list[index] = booking;
+  //   for (const item of list) {
+  //     if (booking.bookingId !== item.bookingId && booking.roomId === item.roomId) {
+  //       if (booking.startDate >= item.startDate && booking.startDate < item.endDate) {
+  //         return throwError('wrong startDate: ' + this.formatGMY(booking.startDate));
+  //       }
+  //       if (booking.endDate > item.startDate && booking.startDate < item.endDate) {
+  //         return throwError('wrong endDate: ' + this.formatGMY(booking.endDate));
+  //       }
+  //     }
+  //   }
+  //   const index = list.findIndex(x => x.bookingId === booking.bookingId);
+  //   list[index] = booking;
 
-    return of('ok');
-  }
+  //   return of('ok');
+  // }
 
-  deleteReservation(id: number): Observable<string> {
-    const list = this.getAllBooking();
+  // deleteReservation(id: number): Observable<string> {
+  //   const list = this.getAllBooking();
 
-    const index = list.findIndex(x => x.bookingId === id);
-    list.splice(index, 1);
+  //   const index = list.findIndex(x => x.bookingId === id);
+  //   list.splice(index, 1);
 
-    return of('ok');
-  }
+  //   return of('ok');
+  // }
 
   private formatGMY(date: Date): string {
     return date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();
@@ -154,340 +180,280 @@ export class ReservationService {
 
   private getAllRoom(): Room[] {
     const r = new Array<Room>();
-    let room: Room;
-
-    room = new Room();
-    room.roomId = 1;
-    room.roomNumber = '100';
-    room.roomType = 1;
-    room.roomTypeName = 'Single';
-    room.roomState = 'LP';
-    r.push(room);
-    room = new Room();
-    room.roomId = 2;
-    room.roomNumber = '101';
-    room.roomType = 1;
-    room.roomTypeName = 'Single';
-    room.roomState = 'LS';
-    r.push(room);
-    room = new Room();
-    room.roomId = 3;
-    room.roomNumber = '102';
-    room.roomType = 1;
-    room.roomTypeName = 'Single';
-    room.roomState = 'OS';
-    r.push(room);
-    room = new Room();
-    room.roomId = 4;
-    room.roomNumber = '104';
-    room.roomType = 2;
-    room.roomTypeName = 'Double';
-    room.roomState = 'LP';
-    r.push(room);
-    room = new Room();
-    room.roomId = 5;
-    room.roomNumber = '105';
-    room.roomType = 2;
-    room.roomTypeName = 'Double';
-    room.roomState = 'LS';
-    r.push(room);
-
-    room = new Room();
-    room.roomId = 6;
-    room.roomNumber = '200';
-    room.roomType = 1;
-    room.roomTypeName = 'Single';
-    room.roomState = 'OS';
-    r.push(room);
-    room = new Room();
-    room.roomId = 7;
-    room.roomNumber = '201';
-    room.roomType = 1;
-    room.roomTypeName = 'Single';
-    room.roomState = 'LP';
-    r.push(room);
-    room = new Room();
-    room.roomId = 8;
-    room.roomNumber = '202';
-    room.roomType = 1;
-    room.roomTypeName = 'Single';
-    room.roomState = 'LS';
-    r.push(room);
-
+  
+    r.push(new Room(1, 'Chambre 101', 'Catégorie A', 'Simple'));
+    r.push(new Room(2, 'Chambre 102', 'Catégorie B', 'Double'));
+    r.push(new Room(3, 'Chambre 103', 'Catégorie A', 'Simple'));
+    r.push(new Room(4, 'Chambre 104', 'Catégorie C', 'Suite'));
+    r.push(new Room(5, 'Chambre 105', 'Catégorie B', 'Double'));
+    r.push(new Room(6, 'Chambre 106', 'Catégorie A', 'Simple'));
+  
     return r;
   }
-
-  private getAllBooking(): Booking[] {
-    if (this.bookings) {
-      return this.bookings;
-    }
-    const b = new Array<Booking>();
-    this.bookings = b;
-
-    let index = 1;
-    for (let y = 2018; y < 2020; ++y) {
-      for (let m = 0; m < 12; ++m) {
-        if ((m % 2) === 1) {
-          this.createBoking1(b, y, m, index);
-        } else {
-          this.createBoking2(b, y, m, index);
-        }
-        index = index + 13;
-      }
-    }
-
-    return b;
+  getAllBooking(): Booking[] {
+    return this.bookings;
   }
 
-  private createBoking1(b:Booking[], y:number, m:number, bid:number) {
-    let booking: Booking;
+  addBooking(booking: Booking): void {
+    // Trouver la valeur maximale actuelle de l'ID dans la liste des réservations
+    const maxId = this.bookings.reduce((max, booking) => (booking.bookingId > max ? booking.bookingId : max), 0);
 
-    booking = new Booking();
-    booking.bookingId = bid;
-    booking.roomId = 1;
-    booking.roomType = 1;
-    booking.startDate = new Date(y, m, 5);
-    booking.endDate = new Date(y, m, 10);
-    booking.stayDay = 5;
-    booking.name = 'personA-' + booking.bookingId;
-    b.push(booking);
-    booking = new Booking();
-    booking.bookingId = bid + 2;
-    booking.roomId = 1;
-    booking.roomType = 1;
-    booking.startDate = new Date(y, m, 15);
-    booking.endDate = new Date(y, m, 20);
-    booking.stayDay = 5;
-    booking.name = 'personA-' + booking.bookingId;
-    b.push(booking);
+    // Incrémenter l'ID de la nouvelle réservation
+    booking.bookingId = maxId + 1;
 
-    booking = new Booking();
-    booking.bookingId = bid + 3;
-    booking.roomId = 2;
-    booking.roomType = 1;
-    booking.startDate = new Date(y, m, 5);
-    booking.endDate = new Date(y, m, 10);
-    booking.stayDay = 5;
-    booking.name = 'personA-' + booking.bookingId;
-    b.push(booking);
-    booking = new Booking();
-    booking.bookingId = bid + 5;
-    booking.roomId = 2;
-    booking.roomType = 1;
-    booking.startDate = new Date(y, m, 15);
-    booking.endDate = new Date(y, m, 20);
-    booking.stayDay = 5;
-    booking.name = 'personA-' + booking.bookingId;
-    b.push(booking);
-
-    booking = new Booking();
-    booking.bookingId = bid + 6;
-    booking.roomId = 3;
-    booking.roomType = 1;
-    booking.startDate = new Date(y, m, 9);
-    booking.endDate = new Date(y, m, 11);
-    booking.stayDay = 1;
-    booking.name = 'personA-' + booking.bookingId;
-    b.push(booking);
-    booking = new Booking();
-    booking.bookingId = bid + 7;
-    booking.roomId = 3;
-    booking.roomType = 1;
-    booking.startDate = new Date(y, m, 11);
-    booking.endDate = new Date(y, m, 14);
-    booking.stayDay = 1;
-    booking.name = 'personA-' + booking.bookingId;
-    b.push(booking);
-    booking = new Booking();
-    booking.bookingId = bid + 8;
-    booking.roomId = 3;
-    booking.roomType = 1;
-    booking.startDate = new Date(y, m, 14);
-    booking.endDate = new Date(y, m, 16);
-    booking.stayDay = 1;
-    booking.name = 'personA-' + booking.bookingId;
-    b.push(booking);
-
-    booking = new Booking();
-    booking.bookingId = bid + 1;
-    booking.roomId = 1;
-    booking.roomType = 1;
-    booking.startDate = new Date(y, m, 12);
-    booking.endDate = new Date(y, m, 13);
-    booking.stayDay = 1;
-    booking.name = 'personA-' + booking.bookingId;
-    b.push(booking);
-    booking = new Booking();
-    booking.bookingId = bid + 9;
-    booking.roomId = 2;
-    booking.roomType = 1;
-    booking.startDate = new Date(y, m, 12);
-    booking.endDate = new Date(y, m, 13);
-    booking.stayDay = 1;
-    booking.name = 'personA-' + booking.bookingId;
-    b.push(booking);
-    booking = new Booking();
-    booking.bookingId = bid + 4;
-    booking.roomId = 5;
-    booking.roomType = 2;
-    booking.startDate = new Date(y, m, 12);
-    booking.endDate = new Date(y, m, 13);
-    booking.stayDay = 1;
-    booking.name = 'personA-' + booking.bookingId;
-    b.push(booking);
-    booking = new Booking();
-    booking.bookingId = bid + 10;
-    booking.roomId = 6;
-    booking.roomType = 1;
-    booking.startDate = new Date(y, m, 12);
-    booking.endDate = new Date(y, m, 13);
-    booking.stayDay = 1;
-    booking.name = 'personA-' + booking.bookingId;
-    b.push(booking);
-
-    booking = new Booking();
-    booking.bookingId = bid + 10;
-    booking.roomId = 3;
-    booking.roomType = 1;
-    booking.startDate = new Date(y, m, 24);
-    booking.endDate = new Date(y, m, 26);
-    booking.stayDay = 1;
-    booking.name = 'personC-' + booking.bookingId;
-    b.push(booking);
-    booking = new Booking();
-    booking.bookingId = bid + 10;
-    booking.roomId = 8;
-    booking.roomType = 1;
-    booking.startDate = new Date(y, m, 24);
-    booking.endDate = new Date(y, m, 26);
-    booking.stayDay = 1;
-    booking.name = 'personC-' + booking.bookingId;
-    b.push(booking);
+    // Ajouter la réservation à la liste
+    this.bookings.push(booking);
   }
 
-  private createBoking2(b:Booking[], y:number, m:number, bid:number) {
-    let booking: Booking;
+  // private createBoking1(b:Booking[], y:number, m:number, bid:number) {
+  //   let booking: Booking;
 
-    booking = new Booking();
-    booking.bookingId = bid;
-    booking.roomId = 4;
-    booking.roomType = 2;
-    booking.startDate = new Date(y, m, 5);
-    booking.endDate = new Date(y, m, 10);
-    booking.stayDay = 5;
-    booking.name = 'personB-' + booking.bookingId;
-    b.push(booking);
-    booking = new Booking();
-    booking.bookingId = bid + 2;
-    booking.roomId = 4;
-    booking.roomType = 2;
-    booking.startDate = new Date(y, m, 15);
-    booking.endDate = new Date(y, m, 20);
-    booking.stayDay = 5;
-    booking.name = 'personB-' + booking.bookingId;
-    b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid;
+  //   booking.roomId = 1;
+  //   booking.roomType = 1;
+  //   booking.startDate = new Date(y, m, 5);
+  //   booking.endDate = new Date(y, m, 10);
+  //   booking.stayDay = 5;
+  //   booking.name = 'personA-' + booking.bookingId;
+  //   b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 2;
+  //   booking.roomId = 1;
+  //   booking.roomType = 1;
+  //   booking.startDate = new Date(y, m, 15);
+  //   booking.endDate = new Date(y, m, 20);
+  //   booking.stayDay = 5;
+  //   booking.name = 'personA-' + booking.bookingId;
+  //   b.push(booking);
 
-    booking = new Booking();
-    booking.bookingId = bid + 3;
-    booking.roomId = 5;
-    booking.roomType = 2;
-    booking.startDate = new Date(y, m, 5);
-    booking.endDate = new Date(y, m, 10);
-    booking.stayDay = 5;
-    booking.name = 'personB-' + booking.bookingId;
-    b.push(booking);
-    booking = new Booking();
-    booking.bookingId = bid + 5;
-    booking.roomId = 5;
-    booking.roomType = 2;
-    booking.startDate = new Date(y, m, 15);
-    booking.endDate = new Date(y, m, 20);
-    booking.stayDay = 5;
-    booking.name = 'personB-' + booking.bookingId;
-    b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 3;
+  //   booking.roomId = 2;
+  //   booking.roomType = 1;
+  //   booking.startDate = new Date(y, m, 5);
+  //   booking.endDate = new Date(y, m, 10);
+  //   booking.stayDay = 5;
+  //   booking.name = 'personA-' + booking.bookingId;
+  //   b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 5;
+  //   booking.roomId = 2;
+  //   booking.roomType = 1;
+  //   booking.startDate = new Date(y, m, 15);
+  //   booking.endDate = new Date(y, m, 20);
+  //   booking.stayDay = 5;
+  //   booking.name = 'personA-' + booking.bookingId;
+  //   b.push(booking);
 
-    booking = new Booking();
-    booking.bookingId = bid + 6;
-    booking.roomId = 9;
-    booking.roomType = 2;
-    booking.startDate = new Date(y, m, 9);
-    booking.endDate = new Date(y, m, 11);
-    booking.stayDay = 1;
-    booking.name = 'personB-' + booking.bookingId;
-    b.push(booking);
-    booking = new Booking();
-    booking.bookingId = bid + 7;
-    booking.roomId = 9;
-    booking.roomType = 2;
-    booking.startDate = new Date(y, m, 11);
-    booking.endDate = new Date(y, m, 14);
-    booking.stayDay = 1;
-    booking.name = 'personB-' + booking.bookingId;
-    b.push(booking);
-    booking = new Booking();
-    booking.bookingId = bid + 8;
-    booking.roomId = 9;
-    booking.roomType = 2;
-    booking.startDate = new Date(y, m, 14);
-    booking.endDate = new Date(y, m, 16);
-    booking.stayDay = 1;
-    booking.name = 'personB-' + booking.bookingId;
-    b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 6;
+  //   booking.roomId = 3;
+  //   booking.roomType = 1;
+  //   booking.startDate = new Date(y, m, 9);
+  //   booking.endDate = new Date(y, m, 11);
+  //   booking.stayDay = 1;
+  //   booking.name = 'personA-' + booking.bookingId;
+  //   b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 7;
+  //   booking.roomId = 3;
+  //   booking.roomType = 1;
+  //   booking.startDate = new Date(y, m, 11);
+  //   booking.endDate = new Date(y, m, 14);
+  //   booking.stayDay = 1;
+  //   booking.name = 'personA-' + booking.bookingId;
+  //   b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 8;
+  //   booking.roomId = 3;
+  //   booking.roomType = 1;
+  //   booking.startDate = new Date(y, m, 14);
+  //   booking.endDate = new Date(y, m, 16);
+  //   booking.stayDay = 1;
+  //   booking.name = 'personA-' + booking.bookingId;
+  //   b.push(booking);
 
-    booking = new Booking();
-    booking.bookingId = bid + 1;
-    booking.roomId = 1;
-    booking.roomType = 1;
-    booking.startDate = new Date(y, m, 12);
-    booking.endDate = new Date(y, m, 13);
-    booking.stayDay = 1;
-    booking.name = 'personB-' + booking.bookingId;
-    b.push(booking);
-    booking = new Booking();
-    booking.bookingId = bid + 4;
-    booking.roomId = 2;
-    booking.roomType = 1;
-    booking.startDate = new Date(y, m, 12);
-    booking.endDate = new Date(y, m, 13);
-    booking.stayDay = 1;
-    booking.name = 'personB-' + booking.bookingId;
-    b.push(booking);
-    booking = new Booking();
-    booking.bookingId = bid + 9;
-    booking.roomId = 6;
-    booking.roomType = 1;
-    booking.startDate = new Date(y, m, 12);
-    booking.endDate = new Date(y, m, 13);
-    booking.stayDay = 1;
-    booking.name = 'personB-' + booking.bookingId;
-    b.push(booking);
-    booking = new Booking();
-    booking.bookingId = bid + 10;
-    booking.roomId = 7;
-    booking.roomType = 1;
-    booking.startDate = new Date(y, m, 12);
-    booking.endDate = new Date(y, m, 13);
-    booking.stayDay = 1;
-    booking.name = 'personB-' + booking.bookingId;
-    b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 1;
+  //   booking.roomId = 1;
+  //   booking.roomType = 1;
+  //   booking.startDate = new Date(y, m, 12);
+  //   booking.endDate = new Date(y, m, 13);
+  //   booking.stayDay = 1;
+  //   booking.name = 'personA-' + booking.bookingId;
+  //   b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 9;
+  //   booking.roomId = 2;
+  //   booking.roomType = 1;
+  //   booking.startDate = new Date(y, m, 12);
+  //   booking.endDate = new Date(y, m, 13);
+  //   booking.stayDay = 1;
+  //   booking.name = 'personA-' + booking.bookingId;
+  //   b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 4;
+  //   booking.roomId = 5;
+  //   booking.roomType = 2;
+  //   booking.startDate = new Date(y, m, 12);
+  //   booking.endDate = new Date(y, m, 13);
+  //   booking.stayDay = 1;
+  //   booking.name = 'personA-' + booking.bookingId;
+  //   b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 10;
+  //   booking.roomId = 6;
+  //   booking.roomType = 1;
+  //   booking.startDate = new Date(y, m, 12);
+  //   booking.endDate = new Date(y, m, 13);
+  //   booking.stayDay = 1;
+  //   booking.name = 'personA-' + booking.bookingId;
+  //   b.push(booking);
 
-    booking = new Booking();
-    booking.bookingId = bid + 10;
-    booking.roomId = 3;
-    booking.roomType = 1;
-    booking.startDate = new Date(y, m, 24);
-    booking.endDate = new Date(y, m, 26);
-    booking.stayDay = 1;
-    booking.name = 'personC-' + booking.bookingId;
-    b.push(booking);
-    booking = new Booking();
-    booking.bookingId = bid + 10;
-    booking.roomId = 8;
-    booking.roomType = 1;
-    booking.startDate = new Date(y, m, 24);
-    booking.endDate = new Date(y, m, 26);
-    booking.stayDay = 1;
-    booking.name = 'personC-' + booking.bookingId;
-    b.push(booking);
-  }
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 10;
+  //   booking.roomId = 3;
+  //   booking.roomType = 1;
+  //   booking.startDate = new Date(y, m, 24);
+  //   booking.endDate = new Date(y, m, 26);
+  //   booking.stayDay = 1;
+  //   booking.name = 'personC-' + booking.bookingId;
+  //   b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 10;
+  //   booking.roomId = 8;
+  //   booking.roomType = 1;
+  //   booking.startDate = new Date(y, m, 24);
+  //   booking.endDate = new Date(y, m, 26);
+  //   booking.stayDay = 1;
+  //   booking.name = 'personC-' + booking.bookingId;
+  //   b.push(booking);
+  // }
+
+  // private createBoking2(b:Booking[], y:number, m:number, bid:number) {
+  //   let booking: Booking;
+
+  //   booking = new Booking();
+  //   booking.bookingId = bid;
+  //   booking.roomId = 4;
+  //   booking.roomType = 2;
+  //   booking.startDate = new Date(y, m, 5);
+  //   booking.endDate = new Date(y, m, 10);
+  //   booking.stayDay = 5;
+  //   booking.name = 'personB-' + booking.bookingId;
+  //   b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 2;
+  //   booking.roomId = 4;
+  //   booking.roomType = 2;
+  //   booking.startDate = new Date(y, m, 15);
+  //   booking.endDate = new Date(y, m, 20);
+  //   booking.stayDay = 5;
+  //   booking.name = 'personB-' + booking.bookingId;
+  //   b.push(booking);
+
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 3;
+  //   booking.roomId = 5;
+  //   booking.roomType = 2;
+  //   booking.startDate = new Date(y, m, 5);
+  //   booking.endDate = new Date(y, m, 10);
+  //   booking.stayDay = 5;
+  //   booking.name = 'personB-' + booking.bookingId;
+  //   b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 5;
+  //   booking.roomId = 5;
+  //   booking.roomType = 2;
+  //   booking.startDate = new Date(y, m, 15);
+  //   booking.endDate = new Date(y, m, 20);
+  //   booking.stayDay = 5;
+  //   booking.name = 'personB-' + booking.bookingId;
+  //   b.push(booking);
+
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 6;
+  //   booking.roomId = 9;
+  //   booking.roomType = 2;
+  //   booking.startDate = new Date(y, m, 9);
+  //   booking.endDate = new Date(y, m, 11);
+  //   booking.stayDay = 1;
+  //   booking.name = 'personB-' + booking.bookingId;
+  //   b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 7;
+  //   booking.roomId = 9;
+  //   booking.roomType = 2;
+  //   booking.startDate = new Date(y, m, 11);
+  //   booking.endDate = new Date(y, m, 14);
+  //   booking.stayDay = 1;
+  //   booking.name = 'personB-' + booking.bookingId;
+  //   b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 8;
+  //   booking.roomId = 9;
+  //   booking.roomType = 2;
+  //   booking.startDate = new Date(y, m, 14);
+  //   booking.endDate = new Date(y, m, 16);
+  //   booking.stayDay = 1;
+  //   booking.name = 'personB-' + booking.bookingId;
+  //   b.push(booking);
+
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 1;
+  //   booking.roomId = 1;
+  //   booking.roomType = 1;
+  //   booking.startDate = new Date(y, m, 12);
+  //   booking.endDate = new Date(y, m, 13);
+  //   booking.stayDay = 1;
+  //   booking.name = 'personB-' + booking.bookingId;
+  //   b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 4;
+  //   booking.roomId = 2;
+  //   booking.roomType = 1;
+  //   booking.startDate = new Date(y, m, 12);
+  //   booking.endDate = new Date(y, m, 13);
+  //   booking.stayDay = 1;
+  //   booking.name = 'personB-' + booking.bookingId;
+  //   b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 9;
+  //   booking.roomId = 6;
+  //   booking.roomType = 1;
+  //   booking.startDate = new Date(y, m, 12);
+  //   booking.endDate = new Date(y, m, 13);
+  //   booking.stayDay = 1;
+  //   booking.name = 'personB-' + booking.bookingId;
+  //   b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 10;
+  //   booking.roomId = 7;
+  //   booking.roomType = 1;
+  //   booking.startDate = new Date(y, m, 12);
+  //   booking.endDate = new Date(y, m, 13);
+  //   booking.stayDay = 1;
+  //   booking.name = 'personB-' + booking.bookingId;
+  //   b.push(booking);
+
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 10;
+  //   booking.roomId = 3;
+  //   booking.roomType = 1;
+  //   booking.startDate = new Date(y, m, 24);
+  //   booking.endDate = new Date(y, m, 26);
+  //   booking.stayDay = 1;
+  //   booking.name = 'personC-' + booking.bookingId;
+  //   b.push(booking);
+  //   booking = new Booking();
+  //   booking.bookingId = bid + 10;
+  //   booking.roomId = 8;
+  //   booking.roomType = 1;
+  //   booking.startDate = new Date(y, m, 24);
+  //   booking.endDate = new Date(y, m, 26);
+  //   booking.stayDay = 1;
+  //   booking.name = 'personC-' + booking.bookingId;
+  //   b.push(booking);
+  // }
 }

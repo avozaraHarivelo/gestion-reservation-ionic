@@ -14,7 +14,9 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { NativeDateModule } from '@angular/material/core';
 import { CalendarComponent } from './calendar/calendar.component';
 import { CalendarNavbarComponent } from './calendar-navbar/calendar-navbar.component';
-import { CanlendrierReservationComponent } from './canlendrier-reservation/canlendrier-reservation.component';
+// import { CanlendrierReservationComponent } from './canlendrier-reservation/canlendrier-reservation.component';
+import { NewReservationModalComponent } from '../components/new-reservation-modal/new-reservation-modal.component';
+import { MatDialogModule } from '@angular/material/dialog';
 //import { CanlendrierSearchoutComponent } from './calendrier-search/canlendrier-searchout/canlendrier-searchout.component';
 //import { CanlendrierSearchinComponent } from './calendrier-search/canlendrier-searchin/canlendrier-searchin.component';
 
@@ -24,7 +26,8 @@ import { CanlendrierReservationComponent } from './canlendrier-reservation/canle
   declarations: [
     CalendarComponent,
     CalendarNavbarComponent,
-    CanlendrierReservationComponent,
+    // CanlendrierReservationComponent,
+    NewReservationModalComponent
    // CanlendrierSearchoutComponent,
    // CanlendrierSearchinComponent
   ],
@@ -41,7 +44,8 @@ import { CanlendrierReservationComponent } from './canlendrier-reservation/canle
     MatToolbarModule,
     MatIconModule,
     MatDatepickerModule,
-    NativeDateModule
+    NativeDateModule,
+    MatDialogModule
   ],
   // entryComponents: [
   //   CanlendrierSearchinComponent
@@ -49,7 +53,7 @@ import { CanlendrierReservationComponent } from './canlendrier-reservation/canle
   exports: [
     CalendarComponent,
     CalendarNavbarComponent,
-    CanlendrierReservationComponent,
+    // CanlendrierReservationComponent,
     //CanlendrierSearchoutComponent,
    // CanlendrierSearchinComponent
   ],

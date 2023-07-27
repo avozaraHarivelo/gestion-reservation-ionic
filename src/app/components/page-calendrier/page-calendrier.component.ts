@@ -41,33 +41,33 @@ export class PageCalendrierComponent implements OnInit {
 
   ngOnInit() { }
 
-  onReservationChanged(args: ChangeReservationArg) {
-    this.currentsearch = args;
-    if (this.sub) {
-      this.sub.unsubscribe();
-      this.sub = new Subscription();
-    }
-    this.sub = this.service.getReservations(args).subscribe(result => {
-      const r = result as Reservation;
-      this.rooms = r.rooms;
-      this.bookings = r.bookings;
-      this.cd.detectChanges();
-    });
-  }
+  // onReservationChanged(args: ChangeReservationArg) {
+  //   this.currentsearch = args;
+  //   if (this.sub) {
+  //     this.sub.unsubscribe();
+  //     this.sub = new Subscription();
+  //   }
+  //   this.sub = this.service.getReservations(args).subscribe(result => {
+  //     const r = result as Reservation;
+  //     this.rooms = r.rooms;
+  //     this.bookings = r.bookings;
+  //     this.cd.detectChanges();
+  //   });
+  // }
 
-  onDayReservation(args: ReservationArg) {
-    const dialogConfig = new MatDialogConfig();
-    dialogConfig.width = '600px';
-    dialogConfig.height = '550px';
-    const list = this.service.getRooms();
-    dialogConfig.data = { roomid: args.roomid, date: args.date, booking: args.booking, rooms: list };
-    const dialogRef = this.dialog.open(FormReservationComponent, dialogConfig);
-    dialogRef.afterClosed().subscribe(data => {
-      if (data === 'ok') {
-        this.onReservationChanged(this.currentsearch);
-      }
-      if (data === 'no') {
-      }
-    });
-  }
+  // onDayReservation(args: ReservationArg) {
+  //   const dialogConfig = new MatDialogConfig();
+  //   dialogConfig.width = '600px';
+  //   dialogConfig.height = '550px';
+  //   const list = this.service.getRooms();
+  //   dialogConfig.data = { roomid: args.roomid, date: args.date, booking: args.booking, rooms: list };
+  //   const dialogRef = this.dialog.open(FormReservationComponent, dialogConfig);
+  //   dialogRef.afterClosed().subscribe(data => {
+  //     if (data === 'ok') {
+  //       this.onReservationChanged(this.currentsearch);
+  //     }
+  //     if (data === 'no') {
+  //     }
+  //   });
+  // }
 }

@@ -1,6 +1,13 @@
 import { isMoment } from 'moment';
 
 export class Utility {
+  public static getWeek(currentYear: number, currentMonth: number, startDayOfWeek: number) {
+    const date = new Date(currentYear, currentMonth, startDayOfWeek);
+    const onejan = new Date(date.getFullYear(), 0, 1);
+    const week = Math.ceil((((date.getTime() - onejan.getTime()) / 86400000) + onejan.getDay() + 1) / 7);
+    return week;
+ 
+  }
   public static toString(value: any): string {
     let valret = '';
     if (value === undefined) {

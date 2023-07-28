@@ -13,6 +13,7 @@ import { Layer } from 'konva/lib/Layer';
 import { RoomService } from 'src/app/service/room-service';
 import { ReservationService } from 'src/app/service/reservation-service';
 import { FormReservationComponent } from 'src/app/components/form-reservation/form-reservation.component';
+import { Utility } from 'src/app/appcore/utility';
 
 @Component({
   selector: 'app-calendar',
@@ -139,22 +140,44 @@ export class CalendarComponent implements OnInit {
       width: colEnd - colStart + cellWidthDay,
       height: cellHeight,
       fill: 'blue',
-      opacity: 0.7,
+      opacity: 1,
       draggable: true,
     });
 
     draggableCell.position({
       x: colStart + 300, // 100 est la position de départ x pour les cellules de chambre
-      y: row * cellHeight + 30, // À partir de la ligne 30 pour l'en-tête des jours du mois
+      y: row * cellHeight + 30 + cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
     });
+
+
+    // Créer le texte à afficher au-dessus de la cellule
+    const text = new Konva.Text({
+      text: this.findBooking(selectedRoom, startDate, endDate)?.name, // Remplacez par le texte souhaité
+      width: colEnd - colStart + cellWidthDay,
+      fontSize: 18,
+      align: 'center',
+      verticalAlign: 'middle',
+      fill: 'black',
+    });
+
+    // Positionner le texte au-dessus de la cellule
+    text.position({
+      x: draggableCell.x(),
+      y: draggableCell.y() + 20, // Ajuster la position verticale du texte par rapport à la cellule
+    });
+
+
 
     // Gérer les événements de déplacement et de redimensionnement
 
     // Événement dragstart pour mettre la cellule au-dessus des autres
     draggableCell.on('dragstart', () => {
       draggableCell.moveToTop();
+      text.moveToTop();
       this.tableLayer.draw();
     });
+
+
 
     // Ajouter l'écouteur d'événements de double-clic pour la cellule de réservation
     draggableCell.on('dblclick', () => {
@@ -167,14 +190,19 @@ export class CalendarComponent implements OnInit {
 
       // Ajuster le calcul en fonction de la nouvelle largeur des cellules
       var cellX = Math.floor((newPosition.x - cellWidthRoom * 3) / cellWidthDay);
-      var cellY = Math.floor((newPosition.y - 30) / cellHeight); // 30 est la hauteur de l'en-tête des jours du mois
+      var cellY = Math.floor((newPosition.y - (30 + cellHeight)) / cellHeight); // 30 est la hauteur de l'en-tête des jours du mois
 
       // Appliquer la nouvelle position
       draggableCell.position({
         x: cellWidthRoom * 3 + cellX * cellWidthDay,
-        y: cellY * cellHeight + 30, // À partir de la ligne 30 pour l'en-tête des jours du mois
+        y: cellY * cellHeight + 30 + this.cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
       });
 
+      // Appliquer la nouvelle position
+      text.position({
+        x: cellWidthRoom * 3 + cellX * cellWidthDay,
+        y: cellY * cellHeight + 30 + this.cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
+      });
       this.tableLayer.draw();
     });
 
@@ -185,7 +213,23 @@ export class CalendarComponent implements OnInit {
       var maxY = tableStage.height() - cellHeight;
 
       // Limiter le mouvement aux cellules vides (jours du mois)
-      newPosition.y = Math.max(newPosition.y, 80);
+      newPosition.y = Math.max(newPosition.y, 80 + cellHeight);
+      newPosition.x = Math.max(newPosition.x, cellWidthRoom * 3);
+      newPosition.x = Math.min(newPosition.x, maxX);
+      newPosition.y = Math.min(newPosition.y, maxY);
+
+      e.target.position(newPosition);
+      this.tableLayer.draw();
+    });
+
+    // Événement dragmove pour limiter le mouvement et la position de la cellule bleue
+    text.on('dragmove', (e) => {
+      var newPosition = e.target.position();
+      var maxX = tableStage.width() - cellWidthDay;
+      var maxY = tableStage.height() - cellHeight;
+
+      // Limiter le mouvement aux cellules vides (jours du mois)
+      newPosition.y = Math.max(newPosition.y, 80 + cellHeight);
       newPosition.x = Math.max(newPosition.x, cellWidthRoom * 3);
       newPosition.x = Math.min(newPosition.x, maxX);
       newPosition.y = Math.min(newPosition.y, maxY);
@@ -199,6 +243,7 @@ export class CalendarComponent implements OnInit {
 
     // Ajouter la cellule bleue et le Transformer au calque
     this.tableLayer.add(draggableCell);
+    this.tableLayer.add(text);
     // Créer un Transformer pour le redimensionnement de la cellule bleue
     var tr = new Konva.Transformer({
       rotateEnabled: false, // Désactiver la rotation
@@ -231,7 +276,7 @@ export class CalendarComponent implements OnInit {
     this.tableLayer.add(tr);
 
     // Lier le Transformer à la cellule bleue
-    tr.nodes([draggableCell]);
+    tr.nodes([draggableCell, text]);
 
     // Redessiner le calque
     this.tableLayer.draw();
@@ -263,7 +308,7 @@ export class CalendarComponent implements OnInit {
     var tableStage = new Konva.Stage({
       container: 'table-container',
       width: canvasWidth,
-      height: this.cellHeight * (this.numRooms + 1) + 30, // +1 pour l'en-tête des jours du mois, +30 pour la hauteur de l'en-tête
+      height: this.cellHeight * (this.numRooms + 2) + 30, // +2 pour l'en-tête des jours du mois et les semaines des années, +30 pour la hauteur de l'en-tête
     });
 
 
@@ -290,6 +335,59 @@ export class CalendarComponent implements OnInit {
 
     this.tableLayer.add(monthHeader);
 
+
+    // Calculer le nombre de semaines dans le mois en fonction du premier jour du mois et du nombre de jours dans le mois
+    const firstDayOfMonth = new Date(this.currentYear, this.currentMonth, 1).getDay();
+    const weeksInMonth = Math.ceil((monthDays + firstDayOfMonth) / 7);
+
+    // Créer une boucle pour parcourir les semaines du mois
+    for (let week = 0; week < weeksInMonth; week++) {
+      // Calculer le nombre de jours dans la semaine actuelle
+      const startDayOfWeek = week * 7 - firstDayOfMonth + 2;
+      const endDayOfWeek = Math.min(startDayOfWeek + 6, monthDays);
+
+      // Calculer la position X de la première cellule de la semaine
+      const startX = this.cellWidthRoom * 3 + Math.max(0, (startDayOfWeek - 1) * this.cellWidthDay);
+
+      // Calculer la position du semaine dans l'année courant
+      const weekNumber = Utility.getWeek(this.currentYear, this.currentMonth, startDayOfWeek);
+
+      // Créer une cellule pour représenter la semaine
+      var weekCell = new Konva.Rect({
+        width: (endDayOfWeek - startDayOfWeek + 1) * this.cellWidthDay - 1,
+        height: this.cellHeight - 1,
+        fill: '#f0f0f0',
+        stroke: 'black',
+        strokeWidth: 1,
+      });
+
+      weekCell.position({
+        x: startX,
+        y: 30, // Utilisez la même ligne de départ que les cellules Konva pour l'en-tête des jours du mois
+      });
+
+      var text = new Konva.Text({
+        text: `${weekNumber}/ ${this.currentYear}`, // Vous pouvez personnaliser le texte ici si nécessaire
+        width: (endDayOfWeek - startDayOfWeek + 1) * this.cellWidthDay,
+        height: this.cellHeight,
+        align: 'left',
+        verticalAlign: 'middle',
+        fontSize: 16,
+        fill: 'black',
+      });
+
+      text.position({
+        x: startX + 10,
+        y: 30, // Utilisez la même ligne de départ que les cellules Konva pour l'en-tête des jours du mois
+      });
+
+      this.tableLayer.add(weekCell);
+      this.tableLayer.add(text);
+    }
+
+
+
+
     // Créer les cellules Konva pour l'en-tête des jours du mois
     for (let col = 1; col <= monthDays; col++) {
       var cell = new Konva.Rect({
@@ -302,7 +400,7 @@ export class CalendarComponent implements OnInit {
 
       cell.position({
         x: this.cellWidthRoom * 3 + (col - 1) * this.cellWidthDay,
-        y: 30, // À partir de la ligne 30 pour l'en-tête des jours du mois
+        y: 30 + this.cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
       });
 
       var currentDate = new Date(this.currentYear, this.currentMonth, col);
@@ -320,7 +418,7 @@ export class CalendarComponent implements OnInit {
 
       text.position({
         x: this.cellWidthRoom * 3 + (col - 1) * this.cellWidthDay,
-        y: 30, // À partir de la ligne 30 pour l'en-tête des jours du mois
+        y: 30 + this.cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
       });
 
       this.tableLayer.add(cell);
@@ -348,7 +446,7 @@ export class CalendarComponent implements OnInit {
 
         cell.position({
           x: col === 0 ? 0 : this.cellWidthRoom * 3 + (col - 1) * this.cellWidthDay,
-          y: row * this.cellHeight + 30, // À partir de la ligne 30 pour l'en-tête des jours du mois
+          y: row * this.cellHeight + 30 + this.cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
         });
 
         var text = new Konva.Text({
@@ -363,7 +461,7 @@ export class CalendarComponent implements OnInit {
 
         text.position({
           x: col === 0 ? 0 : this.cellWidthRoom * 3 + (col - 1) * this.cellWidthDay,
-          y: row * this.cellHeight + 30, // À partir de la ligne 30 pour l'en-tête des jours du mois
+          y: row * this.cellHeight + 30 + this.cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
         });
 
         this.tableLayer.add(cell);
@@ -381,7 +479,7 @@ export class CalendarComponent implements OnInit {
 
       cellCategory.position({
         x: this.cellWidthRoom,
-        y: row * this.cellHeight + 30, // À partir de la ligne 30 pour l'en-tête des jours du mois
+        y: row * this.cellHeight + 30 + this.cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
       });
 
       var textCategory = new Konva.Text({
@@ -396,7 +494,7 @@ export class CalendarComponent implements OnInit {
 
       textCategory.position({
         x: this.cellWidthRoom,
-        y: row * this.cellHeight + 30, // À partir de la ligne 30 pour l'en-tête des jours du mois
+        y: row * this.cellHeight + 30 + this.cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
       });
 
       this.tableLayer.add(cellCategory);
@@ -413,7 +511,7 @@ export class CalendarComponent implements OnInit {
 
       cellType.position({
         x: this.cellWidthRoom * 2,
-        y: row * this.cellHeight + 30, // À partir de la ligne 30 pour l'en-tête des jours du mois
+        y: row * this.cellHeight + 30 + this.cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
       });
 
       var textType = new Konva.Text({
@@ -428,7 +526,7 @@ export class CalendarComponent implements OnInit {
 
       textType.position({
         x: this.cellWidthRoom * 2,
-        y: row * this.cellHeight + 30, // À partir de la ligne 30 pour l'en-tête des jours du mois
+        y: row * this.cellHeight + 30 + this.cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
       });
 
       this.tableLayer.add(cellType);
@@ -513,7 +611,7 @@ export class CalendarComponent implements OnInit {
   }
 
   // Fonction pour rechercher le bookingId correspondant
-  findBookingId(selectedRoom: any, startDate: Date, endDate: Date): number | undefined {
+  findBooking(selectedRoom: any, startDate: Date, endDate: Date): Booking | undefined {
     // Parcourez la liste des réservations
     for (const booking of this.bookings) {
       // Vérifiez si la chambre correspond
@@ -521,7 +619,7 @@ export class CalendarComponent implements OnInit {
         // Vérifiez si les dates correspondent (supposons que startDate et endDate sont les mêmes qu'enregistrées dans la réservation)
         if (booking.startDate.getTime() === startDate.getTime() && booking.endDate.getTime() === endDate.getTime()) {
           // Si la chambre et les dates correspondent, renvoyez le bookingId correspondant
-          return booking.bookingId;
+          return booking;
         }
       }
     }
@@ -539,7 +637,7 @@ export class CalendarComponent implements OnInit {
 
         roomid: room.id, // Passer l'ID de la chambre
         booking: {
-          bookingId: this.findBookingId(room, startDate, endDate),
+          bookingId: this.findBooking(room, startDate, endDate)?.bookingId,
           roomId: room.id, // Vous pouvez également passer d'autres détails de réservation si nécessaire
           startDate: startDate,
           endDate: endDate,

@@ -539,21 +539,21 @@ export class CalendarComponent implements OnInit {
     this.tableLayer.draw();
 
 
-    // Maintenant, bouclez à travers les réservations et appelez createReservationCell pour chaque réservation
-    for (const booking of this.bookings) {
-      // Vous devrez peut-être adapter cette partie en fonction de la structure de vos objets de réservation.
-      const room = this.rooms.find((room) => room.roomId === booking.roomId);
+   // Maintenant, bouclez à travers les réservations et appelez createReservationCell pour chaque réservation
+for (const booking of this.bookings) {
+  // Vous devrez peut-être adapter cette partie en fonction de la structure de vos objets de réservation.
+  const room = this.rooms.find((room) => room.roomId === booking.roomId);
 
-      // Vérifier que la chambre existe dans la liste des chambres
-      if (room) {
-        // Vous devrez peut-être adapter cette partie en fonction de la structure de vos objets de réservation.
-        const startDate = new Date(booking.startDate); // Assurez-vous que la date est correctement formatée en tant que Date.
-        const endDate = new Date(booking.endDate); // Assurez-vous que la date est correctement formatée en tant que Date.
+  // Vérifier que la chambre existe dans la liste des chambres et que la réservation est dans le mois et l'année correspondant
+  if (room && this.isReservationInCurrentMonth(booking)) {
+    // Vous devrez peut-être adapter cette partie en fonction de la structure de vos objets de réservation.
+    const startDate = new Date(booking.startDate); // Assurez-vous que la date est correctement formatée en tant que Date.
+    const endDate = new Date(booking.endDate); // Assurez-vous que la date est correctement formatée en tant que Date.
 
-        // Appelez createReservationCell pour cette réservation spécifique et la chambre correspondante
-        this.createReservationCell(tableStage, room, startDate, endDate);
-      }
-    }
+    // Appelez createReservationCell pour cette réservation spécifique et la chambre correspondante
+    this.createReservationCell(tableStage, room, startDate, endDate);
+  }
+}
 
 
     // Créer un Transformer pour le redimensionnement de la cellule bleue
@@ -653,4 +653,16 @@ export class CalendarComponent implements OnInit {
       console.log('Modal closed:', result);
     });
   }
+  private isReservationInCurrentMonth(booking: Booking): boolean {
+    const startDate = new Date(booking.startDate);
+    const endDate = new Date(booking.endDate);
+  
+    return (
+      startDate.getFullYear() === this.currentYear &&
+      startDate.getMonth() === this.currentMonth &&
+      endDate.getFullYear() === this.currentYear &&
+      endDate.getMonth() === this.currentMonth
+    );
+  }
+  
 }

@@ -54,7 +54,7 @@ export class CalendarComponent implements OnInit {
 
     this.reservationService.getBookings().subscribe((bookings: Booking[]) => {
       this.bookings = bookings;
-      this.updateCalendar(); // Appelez la mise à jour du calendrier une fois que vous avez les réservations
+      this.updateCalendar(this.cellHeight); // Appelez la mise à jour du calendrier une fois que vous avez les réservations
     });
   }
 
@@ -70,9 +70,9 @@ export class CalendarComponent implements OnInit {
     this.rooms = this.roomService.getRooms(); // Récupérer la liste des chambres à partir du service
     this.reservationService.getBookings().subscribe((bookings: Booking[]) => {
       this.bookings = bookings;
-      this.updateCalendar(); // Appelez la mise à jour du calendrier une fois que vous avez les réservations
+      this.updateCalendar(this.cellHeight); // Appelez la mise à jour du calendrier une fois que vous avez les réservations
     });
-    this.updateCalendar();
+    this.updateCalendar(this.cellHeight);
 
 
 
@@ -80,7 +80,7 @@ export class CalendarComponent implements OnInit {
     this.dialog.afterAllClosed.subscribe(() => {
       this.reservationService.getBookings().subscribe((bookings: Booking[]) => {
         this.bookings = bookings;
-        this.updateCalendar(); // Appelez la mise à jour du calendrier une fois que vous avez les réservations
+        this.updateCalendar(this.cellHeight); // Appelez la mise à jour du calendrier une fois que vous avez les réservations
       });
     });
 
@@ -111,7 +111,7 @@ export class CalendarComponent implements OnInit {
       this.currentMonth = 11; // Si le mois est inférieur à 0, revenir à décembre (11)
       this.currentYear--; // Décrémenter l'année lorsque nous atteignons janvier de l'année précédente
     }
-    this.updateCalendar(); // Mettre à jour le calendrier avec le mois et l'année actuels
+    this.updateCalendar(this.cellHeight); // Mettre à jour le calendrier avec le mois et l'année actuels
   }
 
   onNextMonth() {
@@ -120,7 +120,7 @@ export class CalendarComponent implements OnInit {
       this.currentMonth = 0; // Si le mois est supérieur à 11, revenir à janvier (0)
       this.currentYear++; // Incrémenter l'année lorsque nous atteignons décembre de l'année suivante
     }
-    this.updateCalendar(); // Mettre à jour le calendrier avec le mois et l'année actuels
+    this.updateCalendar(this.cellHeight); // Mettre à jour le calendrier avec le mois et l'année actuels
   }
 
 
@@ -142,6 +142,7 @@ export class CalendarComponent implements OnInit {
       fill: 'blue',
       opacity: 1,
       draggable: true,
+      className: 'table-cell'
     });
 
     draggableCell.position({
@@ -282,7 +283,7 @@ export class CalendarComponent implements OnInit {
     this.tableLayer.draw();
   }
 
-  updateCalendar() {
+  updateCalendar(cellHeight: number) {
     // console.log(this.bookings)
 
     // Variables locales pour stocker les valeurs globales
@@ -308,7 +309,7 @@ export class CalendarComponent implements OnInit {
     var tableStage = new Konva.Stage({
       container: 'table-container',
       width: canvasWidth,
-      height: this.cellHeight * (this.numRooms + 2) + 30, // +2 pour l'en-tête des jours du mois et les semaines des années, +30 pour la hauteur de l'en-tête
+      height: cellHeight * (this.numRooms + 2) + 30, // +2 pour l'en-tête des jours du mois et les semaines des années, +30 pour la hauteur de l'en-tête
     });
 
 
@@ -355,7 +356,7 @@ export class CalendarComponent implements OnInit {
       // Créer une cellule pour représenter la semaine
       var weekCell = new Konva.Rect({
         width: (endDayOfWeek - startDayOfWeek + 1) * this.cellWidthDay - 1,
-        height: this.cellHeight - 1,
+        height: cellHeight - 1,
         fill: '#f0f0f0',
         stroke: 'black',
         strokeWidth: 1,
@@ -369,7 +370,7 @@ export class CalendarComponent implements OnInit {
       var text = new Konva.Text({
         text: `${weekNumber}/ ${this.currentYear}`, // Vous pouvez personnaliser le texte ici si nécessaire
         width: (endDayOfWeek - startDayOfWeek + 1) * this.cellWidthDay,
-        height: this.cellHeight,
+        height: cellHeight,
         align: 'left',
         verticalAlign: 'middle',
         fontSize: 16,
@@ -392,15 +393,16 @@ export class CalendarComponent implements OnInit {
     for (let col = 1; col <= monthDays; col++) {
       var cell = new Konva.Rect({
         width: this.cellWidthDay - 1, // 1px pour compenser la bordure
-        height: this.cellHeight - 1, // 1px pour compenser la bordure
+        height: cellHeight - 1, // 1px pour compenser la bordure
         fill: '#f0f0f0',
         stroke: 'black',
         strokeWidth: 1,
+      
       });
 
       cell.position({
         x: this.cellWidthRoom * 3 + (col - 1) * this.cellWidthDay,
-        y: 30 + this.cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
+        y: 30 + cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
       });
 
       var currentDate = new Date(this.currentYear, this.currentMonth, col);
@@ -409,7 +411,7 @@ export class CalendarComponent implements OnInit {
       var text = new Konva.Text({
         text: `${dayOfWeek} ${col} `,
         width: this.cellWidthDay,
-        height: this.cellHeight,
+        height: cellHeight,
         align: 'center',
         verticalAlign: 'middle',
         fontSize: 16,
@@ -418,7 +420,7 @@ export class CalendarComponent implements OnInit {
 
       text.position({
         x: this.cellWidthRoom * 3 + (col - 1) * this.cellWidthDay,
-        y: 30 + this.cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
+        y: 30 + cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
       });
 
       this.tableLayer.add(cell);
@@ -435,24 +437,26 @@ export class CalendarComponent implements OnInit {
     ];
 
     for (let row = 1; row <= this.numRooms; row++) {
+
       for (let col = 0; col <= monthDays; col++) {
         var cell = new Konva.Rect({
           width: col === 0 ? this.cellWidthRoom - 1 : this.cellWidthDay - 1, // 1px pour compenser la bordure
-          height: this.cellHeight - 1, // 1px pour compenser la bordure
+          height: cellHeight - 1, // 1px pour compenser la bordure
           fill: col === 0 ? '#f0f0f0' : 'white', // Les cellules de nom de chambre sont grises, les autres sont blanches
           stroke: 'black',
           strokeWidth: 1,
+          className: 'table-cell'
         });
 
         cell.position({
           x: col === 0 ? 0 : this.cellWidthRoom * 3 + (col - 1) * this.cellWidthDay,
-          y: row * this.cellHeight + 30 + this.cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
+          y: row * cellHeight + 30 + cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
         });
 
         var text = new Konva.Text({
           text: col === 0 ? roomData[row - 1].name : '', // Le texte des cellules de nom de chambre est le nom de la chambre, sinon vide
           width: col === 0 ? this.cellWidthRoom : this.cellWidthDay,
-          height: this.cellHeight,
+          height: cellHeight,
           align: 'center',
           verticalAlign: 'middle',
           fontSize: 14,
@@ -461,7 +465,7 @@ export class CalendarComponent implements OnInit {
 
         text.position({
           x: col === 0 ? 0 : this.cellWidthRoom * 3 + (col - 1) * this.cellWidthDay,
-          y: row * this.cellHeight + 30 + this.cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
+          y: row * cellHeight + 30 + cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
         });
 
         this.tableLayer.add(cell);
@@ -471,21 +475,22 @@ export class CalendarComponent implements OnInit {
       // Ajouter la colonne "Catégorie" à côté des noms de chambre
       var cellCategory = new Konva.Rect({
         width: this.cellWidthRoom - 1,
-        height: this.cellHeight - 1,
+        height: cellHeight - 1,
         fill: '#f0f0f0',
         stroke: 'black',
         strokeWidth: 1,
+        className: 'table-cell'
       });
 
       cellCategory.position({
         x: this.cellWidthRoom,
-        y: row * this.cellHeight + 30 + this.cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
+        y: row * cellHeight + 30 + cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
       });
 
       var textCategory = new Konva.Text({
         text: roomData[row - 1].category,
         width: this.cellWidthRoom,
-        height: this.cellHeight,
+        height: cellHeight,
         align: 'center',
         verticalAlign: 'middle',
         fontSize: 14,
@@ -494,7 +499,7 @@ export class CalendarComponent implements OnInit {
 
       textCategory.position({
         x: this.cellWidthRoom,
-        y: row * this.cellHeight + 30 + this.cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
+        y: row * cellHeight + 30 + cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
       });
 
       this.tableLayer.add(cellCategory);
@@ -503,21 +508,22 @@ export class CalendarComponent implements OnInit {
       // Ajouter la colonne "Type de chambre" à côté des noms de chambre
       var cellType = new Konva.Rect({
         width: this.cellWidthRoom - 1,
-        height: this.cellHeight - 1,
+        height: cellHeight - 1,
         fill: '#f0f0f0',
         stroke: 'black',
         strokeWidth: 1,
+        className: 'table-cell'
       });
 
       cellType.position({
         x: this.cellWidthRoom * 2,
-        y: row * this.cellHeight + 30 + this.cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
+        y: row * cellHeight + 30 + cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
       });
 
       var textType = new Konva.Text({
         text: roomData[row - 1].type,
         width: this.cellWidthRoom,
-        height: this.cellHeight,
+        height: cellHeight,
         align: 'center',
         verticalAlign: 'middle',
         fontSize: 14,
@@ -526,34 +532,73 @@ export class CalendarComponent implements OnInit {
 
       textType.position({
         x: this.cellWidthRoom * 2,
-        y: row * this.cellHeight + 30 + this.cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
+        y: row * cellHeight + 30 + cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
       });
 
       this.tableLayer.add(cellType);
       this.tableLayer.add(textType);
+
+
+    }
+    for (let row = this.numRooms; row >= 1; row--) {
+      const roomId = row - 1; // Since roomData array is zero-based
+
+      // Créer la cellule de sélection pour les noms de chambre
+      var select = new Konva.Rect({
+        width: this.cellWidthRoom * 3 - 1,
+        height: cellHeight - 1,
+        opacity: 0.1,
+        strokeWidth: 1,
+        className: 'table-cell'
+      });
+      select.position({
+        x: 0,
+        y: row * cellHeight + 30 + cellHeight,
+      });
+
+      // create new transformer
+      var t = new Konva.Transformer({
+        rotateEnabled: false,
+        enabledAnchors: ['bottom-center'],
+        boundBoxFunc: (oldBox, newBox) => {
+          // Obtenir la nouvelle hauteur
+          this.cellHeight = newBox.height;
+
+          this.updateCalendar(newBox.height)
+
+          // Redessiner la couche du tableau pour mettre à jour les changements
+          this.tableLayer.draw();
+
+          return newBox;
+        }
+      });
+
+      this.tableLayer.add(t);
+      this.tableLayer.add(select);
+
+      t.nodes([select]);
     }
 
-    this.tableLayer.draw();
 
 
     this.tableLayer.draw();
 
 
-   // Maintenant, bouclez à travers les réservations et appelez createReservationCell pour chaque réservation
-for (const booking of this.bookings) {
-  // Vous devrez peut-être adapter cette partie en fonction de la structure de vos objets de réservation.
-  const room = this.rooms.find((room) => room.roomId === booking.roomId);
+    // Maintenant, bouclez à travers les réservations et appelez createReservationCell pour chaque réservation
+    for (const booking of this.bookings) {
+      // Vous devrez peut-être adapter cette partie en fonction de la structure de vos objets de réservation.
+      const room = this.rooms.find((room) => room.roomId === booking.roomId);
 
-  // Vérifier que la chambre existe dans la liste des chambres et que la réservation est dans le mois et l'année correspondant
-  if (room && this.isReservationInCurrentMonth(booking)) {
-    // Vous devrez peut-être adapter cette partie en fonction de la structure de vos objets de réservation.
-    const startDate = new Date(booking.startDate); // Assurez-vous que la date est correctement formatée en tant que Date.
-    const endDate = new Date(booking.endDate); // Assurez-vous que la date est correctement formatée en tant que Date.
+      // Vérifier que la chambre existe dans la liste des chambres et que la réservation est dans le mois et l'année correspondant
+      if (room && this.isReservationInCurrentMonth(booking)) {
+        // Vous devrez peut-être adapter cette partie en fonction de la structure de vos objets de réservation.
+        const startDate = new Date(booking.startDate); // Assurez-vous que la date est correctement formatée en tant que Date.
+        const endDate = new Date(booking.endDate); // Assurez-vous que la date est correctement formatée en tant que Date.
 
-    // Appelez createReservationCell pour cette réservation spécifique et la chambre correspondante
-    this.createReservationCell(tableStage, room, startDate, endDate);
-  }
-}
+        // Appelez createReservationCell pour cette réservation spécifique et la chambre correspondante
+        this.createReservationCell(tableStage, room, startDate, endDate);
+      }
+    }
 
 
     // Créer un Transformer pour le redimensionnement de la cellule bleue
@@ -656,7 +701,7 @@ for (const booking of this.bookings) {
   private isReservationInCurrentMonth(booking: Booking): boolean {
     const startDate = new Date(booking.startDate);
     const endDate = new Date(booking.endDate);
-  
+
     return (
       startDate.getFullYear() === this.currentYear &&
       startDate.getMonth() === this.currentMonth &&
@@ -664,5 +709,7 @@ for (const booking of this.bookings) {
       endDate.getMonth() === this.currentMonth
     );
   }
-  
+
 }
+
+

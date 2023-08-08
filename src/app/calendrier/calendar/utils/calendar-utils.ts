@@ -14,18 +14,21 @@ export interface CalendarData {
 }
 
 export function updateCalendar(
+    limite: string,
     calendarData: CalendarData,
     cellHeight: number,
     cellWidth: number,
     dialog: MatDialog
 ) {
     const { currentYear, cellWidthRoom, rooms, bookings } = calendarData;
+    let currentMonth = 0;
     const monthName = [
         'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
     ];
 
     const yearDays = Number(Utility.getDaysInYear(currentYear));
-    const canvasWidth = cellWidthRoom * 3 + (cellWidth * yearDays);
+    const monthDays = Number(Utility.getDaysInMonth(currentYear, currentMonth));
+    const canvasWidth = limite === "année" ? cellWidthRoom * 3 + (cellWidth * yearDays) : cellWidthRoom * 3 + (cellWidth * monthDays);
 
 
 
@@ -39,7 +42,7 @@ export function updateCalendar(
     const tableLayer = new Konva.Layer();
     tableStage.add(tableLayer);
 
-    let currentMonth = 0;
+
 
     const reservationCellInstance = new ReservationCell(
         cellWidth,
@@ -110,7 +113,7 @@ export function updateCalendar(
         });
     }
 
-    function createWeekCells() {
+    function createWeekCellsYears() {
         let positionXSemaine = cellWidthRoom * 3;
 
         monthName.forEach((_mois, index) => {
@@ -163,6 +166,62 @@ export function updateCalendar(
         });
     }
 
+    function createWeekCellsMonth() {
+
+
+        // Calculer le nombre de semaines dans le mois en fonction du premier jour du mois et du nombre de jours dans le mois
+        const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+        const weeksInMonth = Math.ceil((monthDays + firstDayOfMonth) / 7);
+
+        // Créer une boucle pour parcourir les semaines du mois
+        for (let week = 0; week < weeksInMonth; week++) {
+            // Calculer le nombre de jours dans la semaine actuelle
+            const startDayOfWeek = week * 7 - firstDayOfMonth + 2;
+            const endDayOfWeek = Math.min(startDayOfWeek + 6, monthDays);
+
+            // Calculer la position X de la première cellule de la semaine
+            const startX = cellWidthRoom * 3 + Math.max(0, (startDayOfWeek - 1) * cellWidth);
+
+            // Calculer la position du semaine dans l'année courant
+            const weekNumber = Utility.getWeek(currentYear, currentMonth, startDayOfWeek);
+
+            // Créer une cellule pour représenter la semaine
+            var weekCell = new Konva.Rect({
+                width: (endDayOfWeek - startDayOfWeek + 1) * cellWidth - 1,
+                height: cellHeight - 1,
+                fill: '#f0f0f0',
+                stroke: 'black',
+                strokeWidth: 1,
+            });
+
+            weekCell.position({
+                x: startX,
+                y: 30, // Utilisez la même ligne de départ que les cellules Konva pour l'en-tête des jours du mois
+            });
+
+            var text = new Konva.Text({
+                text: `${weekNumber}/ ${currentYear}`, // Vous pouvez personnaliser le texte ici si nécessaire
+                width: (endDayOfWeek - startDayOfWeek + 1) * cellWidth,
+                height: cellHeight,
+                align: 'left',
+                verticalAlign: 'middle',
+                fontSize: 16,
+                fill: 'black',
+            });
+
+            text.position({
+                x: startX + 10,
+                y: 30, // Utilisez la même ligne de départ que les cellules Konva pour l'en-tête des jours du mois
+            });
+
+            tableLayer.add(weekCell);
+            tableLayer.add(text);
+        }
+
+
+
+
+    }
 
     function createDayCells() {
         let positionXDay = cellWidthRoom * 3;
@@ -297,7 +356,7 @@ export function updateCalendar(
                     // Obtenir la nouvelle hauteur
                     cellHeight = newBox.height;
 
-                    updateCalendar(calendarData, newBox.height, cellWidth, dialog)
+                    updateCalendar(limite, calendarData, newBox.height, cellWidth, dialog)
 
                     // Redessiner la couche du tableau pour mettre à jour les changements
                     tableLayer.draw();
@@ -313,49 +372,50 @@ export function updateCalendar(
         }
     }
 
-    function resizeWidth(){
+    function resizeWidth() {
         for (let cell = yearDays; cell >= 0; cell--) {
-     
+
             var day = new Konva.Rect({
-              width: cellWidth - 1,
-              height: cellHeight - 1,
-              opacity: 0.1,
-              strokeWidth: 1,
-              className: 'days-cell'
+                width: cellWidth - 1,
+                height: cellHeight - 1,
+                opacity: 0.1,
+                strokeWidth: 1,
+                className: 'days-cell'
             });
-      
-      
+
+
             day.position({
-              x: cellWidthRoom * 3 + (cell) * cellWidth,
-              y: 30 + cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
+                x: cellWidthRoom * 3 + (cell) * cellWidth,
+                y: 30 + cellHeight, // À partir de la ligne 30 pour l'en-tête des jours du mois
             });
             // create new transformer
             var t = new Konva.Transformer({
-              rotateEnabled: false,
-              enabledAnchors: ['middle-right'],
-              boundBoxFunc: (oldBox, newBox) => {
-                // Obtenir la nouvelle hauteur
-                cellWidth = newBox.width;
-      
-                updateCalendar(calendarData,cellHeight, newBox.width,dialog)
-      
-                // Redessiner la couche du tableau pour mettre à jour les changements
-                tableLayer.draw();
-      
-                return newBox;
-              }
+                rotateEnabled: false,
+                enabledAnchors: ['middle-right'],
+                boundBoxFunc: (oldBox, newBox) => {
+                    // Obtenir la nouvelle hauteur
+                    cellWidth = newBox.width;
+
+                    updateCalendar(limite, calendarData, cellHeight, newBox.width, dialog)
+
+                    // Redessiner la couche du tableau pour mettre à jour les changements
+                    tableLayer.draw();
+
+                    return newBox;
+                }
             });
-      
+
             tableLayer.add(t);
             tableLayer.add(day);
-      
+
             t.nodes([day]);
-          }
-      
+        }
+
     }
 
     function createVoidCelles() {
         const { cellWidthRoom, rooms } = calendarData;
+        const numberVoid = limite == "année" ? yearDays : monthDays;
 
         const cellOptions = {
             width: cellWidth - 1,
@@ -367,7 +427,7 @@ export function updateCalendar(
         };
 
         for (let row = 1; row <= rooms.length; row++) {
-            for (let col = 1; col <= yearDays; col++) {
+            for (let col = 1; col <= numberVoid; col++) {
                 const positionX = cellWidthRoom * 3 + (col - 1) * cellWidth;
                 const positionY = row * cellHeight + 30 + cellHeight;
 
@@ -391,6 +451,7 @@ export function updateCalendar(
             }
         }
     }
+
 
     function createReservationCells() {
         for (const booking of bookings) {
@@ -424,10 +485,10 @@ export function updateCalendar(
         }
     }
 
-    console.log(`currentYear:${currentYear} cellWidthRoom:${cellWidthRoom} rooms${rooms} bookings${bookings}`)
+    console.log(`limite: ${limite} currentYear:${currentYear} cellWidthRoom:${cellWidthRoom} rooms${rooms} bookings${bookings}`)
 
     createMonthCellsAndHeaders();
-    createWeekCells();
+    limite == "année" ? createWeekCellsYears() : createWeekCellsMonth();
     createDayCells();
     createRoomInfoCells();
     resizeHeigth();

@@ -20,7 +20,7 @@ import { NewReservationModalComponent } from 'src/app/components/new-reservation
   styleUrls: ['./calendar.component.scss'],
 })
 export class CalendarComponent implements OnInit {
-  selectedLimit:String = "";
+  selectedLimit:string = "";
   @Input() year = 0;
   @Input() month = 0;
   @Input() day = 0;
@@ -53,7 +53,7 @@ export class CalendarComponent implements OnInit {
   constructor(private dialog: MatDialog, private roomService: RoomService, private reservationService: ReservationService) { }
 
   ngOnInit() {
-    this.selectedLimit = "Année";
+    this.selectedLimit = "année";
     this.fetchRoomsAndBookings();
     this.calendarData = {
       currentYear: this.currentYear,
@@ -82,7 +82,7 @@ export class CalendarComponent implements OnInit {
   }
 
   private updateCalendar() {
-    updateCalendar(this.calendarData, this.cellHeight, this.cellWidthDay, this.dialog);
+    updateCalendar(this.selectedLimit,this.calendarData, this.cellHeight, this.cellWidthDay, this.dialog);
   }
 
   openNewReservationDialog() {
@@ -101,7 +101,8 @@ export class CalendarComponent implements OnInit {
   }
 
   onLimitChange() {
-    
+   console.log(`limite: ${this.selectedLimit}`)
+    this.updateCalendar();
   }
 
 

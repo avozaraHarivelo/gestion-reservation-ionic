@@ -6,7 +6,7 @@ export class Utility {
     const onejan = new Date(date.getFullYear(), 0, 1);
     const week = Math.ceil((((date.getTime() - onejan.getTime()) / 86400000) + onejan.getDay() + 1) / 7);
     return week;
- 
+
   }
   public static toString(value: any): string {
     let valret = '';
@@ -36,7 +36,8 @@ export class Utility {
     if (removecomma === true) {
       valret = parseFloat(str.replace(',', '.'));
     } else {
-      valret = str;    }
+      valret = str;
+    }
     return valret;
   }
 
@@ -74,4 +75,42 @@ export class Utility {
     }
     return date;
   }
+  public static getDaysInYear(year: number) {
+    // Vérifier si l'année est bissextile
+    function isLeapYear(year: number) {
+      return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    }
+
+    // Nombre de jours dans chaque mois (non bissextile)
+    const daysInMonth = [
+      31, // Janvier
+      28, // Février
+      31, // Mars
+      30, // Avril
+      31, // Mai
+      30, // Juin
+      31, // Juillet
+      31, // Août
+      30, // Septembre
+      31, // Octobre
+      30, // Novembre
+      31, // Décembre
+    ];
+
+    // Si l'année est bissextile, modifier le nombre de jours en février (index 1)
+    if (isLeapYear(year)) {
+      daysInMonth[1] = 29;
+    }
+
+    // Calculer le nombre total de jours dans l'année en ajoutant les jours de chaque mois
+    const totalDaysInYear = daysInMonth.reduce((sum, days) => sum + days, 0);
+
+    return totalDaysInYear;
+  }
+
+  // Fonction pour obtenir le nombre de jours dans un mois donné
+  public static getDaysInMonth(year: number, month: number) {
+    return new Date(year, month + 1, 0).getDate();
+  }
+
 }

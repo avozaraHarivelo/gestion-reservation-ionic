@@ -20,7 +20,6 @@ import { NewReservationModalComponent } from 'src/app/components/new-reservation
   styleUrls: ['./calendar.component.scss'],
 })
 export class CalendarComponent implements OnInit {
-  selectedLimit:String = "";
   @Input() year = 0;
   @Input() month = 0;
   @Input() day = 0;
@@ -38,31 +37,23 @@ export class CalendarComponent implements OnInit {
   ];
   //test data
   currentYear: number = 2020; // Exemple : 2023
-  cellWidthRoom: number = 80;
+  cellWidthRoom: number = 100;
   cellWidthDay: number = 85;
-  cellHeight: number = 35;
+  cellHeight: number = 40;
+
   // Déclarer et initialiser calendarData ici
-  calendarData: CalendarData = {
-    currentYear: 0,
-    cellWidthRoom: 0,
-    cellWidthDay: 0,
-    rooms: [],
-    bookings: [],
+  private calendarData: CalendarData = {
+    currentYear: this.currentYear,
+    cellWidthRoom: this.cellWidthRoom,
+    cellWidthDay: this.cellWidthDay,
+    rooms: this.rooms,
+    bookings: this.bookings,
   };
 
-  constructor(private dialog: MatDialog, private roomService: RoomService, private reservationService: ReservationService) { }
+  constructor(private dialog: MatDialog, private roomService: RoomService, private reservationService: ReservationService) {}
 
   ngOnInit() {
-    this.selectedLimit = "Année";
     this.fetchRoomsAndBookings();
-    this.calendarData = {
-      currentYear: this.currentYear,
-      cellWidthRoom: this.cellWidthRoom,
-      cellWidthDay: this.cellWidthDay,
-      rooms: this.rooms,
-      bookings: this.bookings,
-    };
-  
     this.updateCalendar();
 
     // Écouter l'événement reservationAdded du composant NewReservationModalComponent
@@ -74,8 +65,6 @@ export class CalendarComponent implements OnInit {
 
   private fetchRoomsAndBookings() {
     this.rooms = this.roomService.getRooms();
-    
-
     this.reservationService.getBookings().subscribe((bookings: Booking[]) => {
       this.bookings = bookings;
     });
@@ -98,10 +87,6 @@ export class CalendarComponent implements OnInit {
       // Traiter le résultat de la boîte de dialogue ici si nécessaire
       console.log('Résultat de la boîte de dialogue :', result);
     });
-  }
-
-  onLimitChange() {
-    
   }
 
 

@@ -1,10 +1,38 @@
-/* CSS pour cibler les cellules de propriété de chambres */
-.room-property-cell {
-    cursor: ns-resize; /* Changer le curseur pour indiquer que les cellules peuvent être redimensionnées verticalement */
-  }
-  
-  /* CSS pour cibler les poignées de redimensionnement verticales (en haut et en bas) du Transformer */
-  .room-property-cell .konvajs-anchor-top, 
-  .room-property-cell .konvajs-anchor-bottom {
-    fill: black;
-  }
+.content-container {
+  display: flex;
+}
+
+.left-content {
+  width: 15%;
+  border: 1px solid black;
+}
+.right-content{
+  width: 15%;
+  border: 1px solid black;
+}
+
+.center-content {
+  width: 70%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid black;
+}
+.nav{
+  height: 10ch;
+  border: 1px solid black;
+}
+.head-option {
+  padding: 5px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+#canvas-container {
+  overflow-x: scroll;
+  flex: 1;
+  position: relative;
+  border: 1px solid black;
+}
+

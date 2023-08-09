@@ -38,8 +38,8 @@ export class CalendarComponent implements OnInit {
   ];
   //test data
   currentYear: number = 2020; // Exemple : 2023
-  cellWidthRoom: number = 80;
-  cellWidthDay: number = 85;
+  cellWidthRoom: number = 60;
+  cellWidthDay: number = 70;
   cellHeight: number = 35;
   // Déclarer et initialiser calendarData ici
   calendarData: CalendarData = {

@@ -30,7 +30,7 @@ export function updateCalendar(
     const monthDays = Number(Utility.getDaysInMonth(currentYear, currentMonth));
     const canvasWidth = limite === "année" ? cellWidthRoom * 3 + (cellWidth * yearDays) : cellWidthRoom * 3 + (cellWidth * monthDays);
 
-
+console.log(`canvasWidth :${canvasWidth} widthcell:${cellWidth}`);
 
 
     const tableStage = new Konva.Stage({
@@ -373,7 +373,9 @@ export function updateCalendar(
     }
 
     function resizeWidth() {
-        for (let cell = yearDays; cell >= 0; cell--) {
+        const width = limite == "année" ? yearDays : monthDays;
+
+        for (let cell = width; cell >= 0; cell--) {
 
             var day = new Konva.Rect({
                 width: cellWidth - 1,

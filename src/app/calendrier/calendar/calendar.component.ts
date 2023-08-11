@@ -37,8 +37,8 @@ export class CalendarComponent implements OnInit {
     'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
   //test data
-  currentYear: number = 2020; // Exemple : 2023
-  cellWidthRoom: number = 60;
+  // currentYear: number = 2023; // Exemple : 2023
+  cellWidthRoom: number = 80;
   cellWidthDay: number = 70;
   cellHeight: number = 35;
   // Déclarer et initialiser calendarData ici
@@ -53,10 +53,10 @@ export class CalendarComponent implements OnInit {
   constructor(private dialog: MatDialog, private roomService: RoomService, private reservationService: ReservationService) { }
 
   ngOnInit() {
-    this.selectedLimit = "année";
+    this.selectedLimit = "mois";
     this.fetchRoomsAndBookings();
     this.calendarData = {
-      currentYear: this.currentYear,
+      currentYear: this.year,
       cellWidthRoom: this.cellWidthRoom,
       cellWidthDay: this.cellWidthDay,
       rooms: this.rooms,
@@ -78,11 +78,12 @@ export class CalendarComponent implements OnInit {
 
     this.reservationService.getBookings().subscribe((bookings: Booking[]) => {
       this.bookings = bookings;
+      console.log(`bookins:${bookings}`)
     });
   }
 
   private updateCalendar() {
-    updateCalendar(this.selectedLimit,this.calendarData, this.cellHeight, this.cellWidthDay, this.dialog);
+    updateCalendar(this.month,this.selectedLimit,this.calendarData, this.cellHeight, this.cellWidthDay, this.dialog);
   }
 
   openNewReservationDialog() {
@@ -101,26 +102,26 @@ export class CalendarComponent implements OnInit {
   }
 
   onLimitChange() {
-   console.log(`limite: ${this.selectedLimit}`)
+  //  console.log(`limite: ${this.selectedLimit}`)
     this.updateCalendar();
   }
 
 
-  // onPrevMonth() {
-  //   this.currentMonth--; // Décrémenter le mois actuel pour aller au mois précédent
-  //   if (this.currentMonth < 0) {
-  //     this.currentMonth = 11; // Si le mois est inférieur à 0, revenir à décembre (11)
-  //     this.currentYear--; // Décrémenter l'année lorsque nous atteignons janvier de l'année précédente
-  //   }
-  //   this.updateCalendar(this.cellHeight); // Mettre à jour le calendrier avec le mois et l'année actuels
-  // }
+  onPrevMonth() {
+    this.month--; // Décrémenter le mois actuel pour aller au mois précédent
+    if (this.month < 0) {
+      this.month = 11; // Si le mois est inférieur à 0, revenir à décembre (11)
+      this.year--; // Décrémenter l'année lorsque nous atteignons janvier de l'année précédente
+    }
+    this.updateCalendar(); // Mettre à jour le calendrier avec le mois et l'année actuels
+  }
 
-  // onNextMonth() {
-  //   this.currentMonth++; // Incrémenter le mois actuel pour aller au mois suivant
-  //   if (this.currentMonth > 11) {
-  //     this.currentMonth = 0; // Si le mois est supérieur à 11, revenir à janvier (0)
-  //     this.currentYear++; // Incrémenter l'année lorsque nous atteignons décembre de l'année suivante
-  //   }
-  //   this.updateCalendar(this.cellHeight); // Mettre à jour le calendrier avec le mois et l'année actuels
-  // }
+  onNextMonth() {
+    this.month++; // Incrémenter le mois actuel pour aller au mois suivant
+    if (this.month > 11) {
+      this.month = 0; // Si le mois est supérieur à 11, revenir à janvier (0)
+      this.year++; // Incrémenter l'année lorsque nous atteignons décembre de l'année suivante
+    }
+    this.updateCalendar(); // Mettre à jour le calendrier avec le mois et l'année actuels
+  }
 }

@@ -74,7 +74,7 @@ export class NewReservationModalComponent implements OnInit {
     //   );
     // }
 
-    console.log(vm);
+    // console.log(vm);
     // Appeler la méthode addBooking du service RoomService pour ajouter la réservation
     this.reservationService.addBooking(vm);
     this.reservationAdded.emit();

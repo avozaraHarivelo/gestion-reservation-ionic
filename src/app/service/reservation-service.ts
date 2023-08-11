@@ -125,7 +125,7 @@ export class ReservationService {
 
   updateReservation(booking: Booking): Observable<string> {
     const list = this.getAllBooking();
-console.log(booking)
+// console.log(booking)
     for (const item of list) {
       if (booking.bookingId !== item.bookingId && booking.roomId === item.roomId) {
         if (booking.startDate >= item.startDate && booking.startDate < item.endDate) {

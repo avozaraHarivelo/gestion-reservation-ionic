@@ -4,6 +4,8 @@ import { ReservationCell } from "./reservation-cell";
 import { Room } from "src/app/models/room";
 import { Booking } from "src/app/models/booking";
 import { MatDialog } from "@angular/material/dialog";
+import { Rect } from "konva/lib/shapes/Rect";
+import { Text } from "konva/lib/shapes/Text";
 
 export interface CalendarData {
     currentYear: number;
@@ -14,6 +16,7 @@ export interface CalendarData {
 }
 
 export function updateCalendar(
+    currentMonth: number,
     limite: string,
     calendarData: CalendarData,
     cellHeight: number,
@@ -21,16 +24,18 @@ export function updateCalendar(
     dialog: MatDialog
 ) {
     const { currentYear, cellWidthRoom, rooms, bookings } = calendarData;
-    let currentMonth = 0;
+    console.log(`currentMonth:number:${currentMonth} currentYear:${currentYear}`);
+
     const monthName = [
         'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
     ];
-
+    const roomCells: Rect[] = [];
+    const roomTexts: Text[] = [];
     const yearDays = Number(Utility.getDaysInYear(currentYear));
     const monthDays = Number(Utility.getDaysInMonth(currentYear, currentMonth));
     const canvasWidth = limite === "année" ? cellWidthRoom * 3 + (cellWidth * yearDays) : cellWidthRoom * 3 + (cellWidth * monthDays);
 
-console.log(`canvasWidth :${canvasWidth} widthcell:${cellWidth}`);
+    console.log(`cellHeight :${cellHeight} cellWidth:${cellWidth}`);
 
 
     const tableStage = new Konva.Stage({
@@ -53,9 +58,13 @@ console.log(`canvasWidth :${canvasWidth} widthcell:${cellWidth}`);
         bookings
     );
 
+
+
     function isReservationInCurrentMonth(booking: Booking): boolean {
         const startDate = new Date(booking.startDate);
         const endDate = new Date(booking.endDate);
+
+        // console.log(month )
 
         return (
             startDate.getFullYear() === currentYear &&
@@ -112,6 +121,52 @@ console.log(`canvasWidth :${canvasWidth} widthcell:${cellWidth}`);
             positionX += joursDansMois * cellWidth;
         });
     }
+    function createMonthCells() {
+
+        let positionX = cellWidthRoom * 3;
+        // Parcourir les mois et afficher chaque mois côte à côte
+
+
+        var joursDansMois = Utility.getDaysInMonth(currentYear, currentMonth);
+
+        // Créer une cellule pour représenter le mois
+        var celluleMois = new Konva.Rect({
+            width: joursDansMois * cellWidth - 1,
+            height: 30 - 1,
+            fill: '#f0f0f0',
+            stroke: 'black',
+            strokeWidth: 1,
+        });
+        celluleMois.position({
+            x: positionX,
+            y: 0,
+        });
+
+        // Créer la cellule Konva pour l'en-tête du mois
+        var enTeteMois = new Konva.Text({
+            text: `${monthName[currentMonth]} ${currentYear}`,
+            width: joursDansMois * cellWidth,
+            height: 30,
+            align: 'center',
+            verticalAlign: 'middle',
+            fontSize: 18,
+            fontStyle: 'bold',
+            fill: 'black',
+        });
+
+        enTeteMois.position({
+            x: positionX,
+            y: 0,
+        });
+
+        tableLayer.add(celluleMois);
+        // Ajouter la cellule à la couche
+        tableLayer.add(enTeteMois);
+
+        // Mettre à jour la position (x) pour le prochain mois
+        positionX += joursDansMois * cellWidth;
+
+    }
 
     function createWeekCellsYears() {
         let positionXSemaine = cellWidthRoom * 3;
@@ -126,7 +181,7 @@ console.log(`canvasWidth :${canvasWidth} widthcell:${cellWidth}`);
                 const premierJourSemaine = semaine * 7 - premierJourDuMois + 1;
                 const numeroSemaine = Utility.getWeek(currentYear, index, premierJourSemaine);
 
-                if (numeroSemaine === currentMonth) continue;
+                if (numeroSemaine === 0) continue;
 
                 currentMonth = numeroSemaine;
 
@@ -326,10 +381,15 @@ console.log(`canvasWidth :${canvasWidth} widthcell:${cellWidth}`);
                     y: positionY
                 });
 
-                tableLayer.add(cell);
-                tableLayer.add(text);
+                roomCells.push(cell);
+                roomTexts.push(text);
+
+               
             });
         }
+        tableLayer.add(...roomCells);
+        tableLayer.add(...roomTexts);
+
     }
 
     function resizeHeigth() {
@@ -356,7 +416,7 @@ console.log(`canvasWidth :${canvasWidth} widthcell:${cellWidth}`);
                     // Obtenir la nouvelle hauteur
                     cellHeight = newBox.height;
 
-                    updateCalendar(limite, calendarData, newBox.height, cellWidth, dialog)
+                    updateCalendar(currentMonth, limite, calendarData, newBox.height, cellWidth, dialog)
 
                     // Redessiner la couche du tableau pour mettre à jour les changements
                     tableLayer.draw();
@@ -398,7 +458,7 @@ console.log(`canvasWidth :${canvasWidth} widthcell:${cellWidth}`);
                     // Obtenir la nouvelle hauteur
                     cellWidth = newBox.width;
 
-                    updateCalendar(limite, calendarData, cellHeight, newBox.width, dialog)
+                    updateCalendar(currentMonth, limite, calendarData, cellHeight, newBox.width, dialog)
 
                     // Redessiner la couche du tableau pour mettre à jour les changements
                     tableLayer.draw();
@@ -457,12 +517,15 @@ console.log(`canvasWidth :${canvasWidth} widthcell:${cellWidth}`);
 
     function createReservationCells() {
         for (const booking of bookings) {
+
             createReservationCell(booking);
         }
     }
 
     function createReservationCell(booking: Booking) {
+
         const room = rooms.find((room) => room.roomId === booking.roomId);
+        // console.log(room && isReservationInCurrentMonth(booking))
         if (room && isReservationInCurrentMonth(booking)) {
             const startDate = new Date(booking.startDate);
             const endDate = new Date(booking.endDate);
@@ -487,9 +550,11 @@ console.log(`canvasWidth :${canvasWidth} widthcell:${cellWidth}`);
         }
     }
 
+
+
     console.log(`limite: ${limite} currentYear:${currentYear} cellWidthRoom:${cellWidthRoom} rooms${rooms} bookings${bookings}`)
 
-    createMonthCellsAndHeaders();
+    limite == "année" ? createMonthCellsAndHeaders() : createMonthCells();
     limite == "année" ? createWeekCellsYears() : createWeekCellsMonth();
     createDayCells();
     createRoomInfoCells();
@@ -497,6 +562,22 @@ console.log(`canvasWidth :${canvasWidth} widthcell:${cellWidth}`);
     resizeWidth();
     createVoidCelles();
     createReservationCells();
+
+    let scrollContainer = document.getElementById('canvas-container');
+
+    scrollContainer?.addEventListener('scroll', () => {
+        const scrollLeft = scrollContainer?.scrollLeft ?? 0;
+
+        
+        // roomCells.forEach(cell => {
+        //     cell.x(cellWidthRoom * 3 + scrollLeft);
+        // });
+        // roomTexts.forEach(text => {
+        //     text.x(cellWidthRoom * 3 + scrollLeft);
+        // });
+        // // tableLayer.batchDraw();
+    });
+
 
     adjustStageBorder();
 

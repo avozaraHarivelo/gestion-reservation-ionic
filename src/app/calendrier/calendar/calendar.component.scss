@@ -29,10 +29,13 @@
   z-index: 1;
 }
 
+
+
 #canvas-container {
-  overflow-x: scroll;
-  flex: 1;
-  position: relative;
+  width: calc(100% - 22px);
+  height: calc(60vh - 22px);
+  overflow: auto;
+  margin: 10px;
   border: 1px solid black;
 }
 

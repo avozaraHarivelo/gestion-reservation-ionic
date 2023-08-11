@@ -35,16 +35,20 @@ export class ReservationCell {
         endDate: Date,
         dialog: MatDialog
     ) {
+
+       
+
         const colStart = Math.floor((startDate.getDate() - 1) * this.cellWidthDay);
         const colEnd = Math.floor((endDate.getDate() - 1) * this.cellWidthDay);
         const row = this.rooms.findIndex((room) => room.roomId === selectedRoom.roomId) + 1;
+         console.log(`colStart:${colStart} colEnd:${colEnd} row:${row} this.cellWidthDay:${this.cellWidthDay}`)
 
         const draggableCell = this.createDraggableCell(colStart, colEnd, row);
         const text = this.createText(selectedRoom, startDate, endDate);
 
         this.addEventListeners(draggableCell, text, selectedRoom, startDate, endDate, dialog, tableStage);
 
-        this.tableLayer.add(draggableCell, text);
+        this.tableLayer.add(draggableCell,text);
 
         this.addTransformer(draggableCell, text);
 
@@ -56,42 +60,44 @@ export class ReservationCell {
         const cellHeight = this.cellHeight;
 
         return new Konva.Rect({
-            width: colEnd - colStart + cellWidthDay,
+            width: colEnd - colStart,
             height: cellHeight,
             fill: "blue",
             opacity: 1,
             draggable: true,
             className: "table-cell",
             position: {
-                x: colStart + 300,
+                x: colStart + this.cellWidthRoom*3,
                 y: row * cellHeight + 30 + cellHeight,
             },
         });
     }
 
     private createText(selectedRoom: Room, startDate: Date, endDate: Date) {
+
+        console.log(`selectedRoom:${selectedRoom.name}`)
         const colStart = Math.floor((startDate.getDate() - 1) * this.cellWidthDay);
         const colEnd = Math.floor((endDate.getDate() - 1) * this.cellWidthDay);
         const cellWidthDay = this.cellWidthDay;
         const cellHeight = this.cellHeight;
 
         return new Konva.Text({
-            text: this.findBooking(selectedRoom, startDate, endDate)?.name ?? "",
-            width: colEnd - colStart + cellWidthDay,
+            text: this.findBooking(selectedRoom, startDate, endDate)?.name ?? "", 
             fontSize: 18,
+            height: cellHeight,
             align: "center",
             verticalAlign: "middle",
             fill: "black",
             position: {
-                x: colStart + 300,
-                y: cellHeight * (this.rooms.findIndex(room => room.roomId === selectedRoom.roomId) + 1) + 50,
+                x: colStart + this.cellWidthRoom*3,
+                y: cellHeight * (this.rooms.findIndex(room => room.roomId === selectedRoom.roomId) + 1)+ 30 + cellHeight,
             },
         });
     }
 
     private addEventListeners(draggableCell: Konva.Rect, text: Konva.Text, selectedRoom: Room, startDate: Date, endDate: Date, dialog: MatDialog, tableStage: Konva.Stage) {
         draggableCell.on("dragstart", () => {
-            [draggableCell, text].forEach(el => el.moveToTop());
+            [draggableCell,text].forEach(el => el.moveToTop());
             this.tableLayer.draw();
         });
 
@@ -104,7 +110,7 @@ export class ReservationCell {
             const cellX = Math.floor((newPosition.x - this.cellWidthRoom * 3) / this.cellWidthDay);
             const cellY = Math.floor((newPosition.y - (30 + this.cellHeight)) / this.cellHeight);
 
-            [draggableCell, text].forEach(el => {
+            [ text,draggableCell].forEach(el => {
                 el.position({
                     x: this.cellWidthRoom * 3 + cellX * this.cellWidthDay,
                     y: cellY * this.cellHeight + 30 + this.cellHeight,

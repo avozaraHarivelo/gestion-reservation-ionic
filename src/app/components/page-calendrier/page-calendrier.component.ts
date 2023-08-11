@@ -31,9 +31,9 @@ export class PageCalendrierComponent implements OnInit {
 
   constructor(private dialog: MatDialog, private service: ReservationService, private cd: ChangeDetectorRef) {
     // const d = new Date();
-    const d = new Date(2019, 2, 4);
+    const d = new Date();
     this.year = d.getFullYear();
-    this.month = d.getMonth() + 1;
+    this.month = d.getMonth();
     this.day = d.getDate();
     this.rooms = [];
     this.bookings = [];

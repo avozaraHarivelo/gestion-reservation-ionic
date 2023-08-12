@@ -31,6 +31,8 @@ export function updateCalendar(
     ];
     const roomCells: Rect[] = [];
     const roomTexts: Text[] = [];
+    const cellStartXPositions: number[] = [];
+   const textStartXPositions: number[] = [];
     const yearDays = Number(Utility.getDaysInYear(currentYear));
     const monthDays = Number(Utility.getDaysInMonth(currentYear, currentMonth));
     const canvasWidth = limite === "année" ? cellWidthRoom * 3 + (cellWidth * yearDays) : cellWidthRoom * 3 + (cellWidth * monthDays);
@@ -342,6 +344,10 @@ export function updateCalendar(
             const positionY = row * cellHeight + 30 + cellHeight;
 
             attributes.forEach((attr, index) => {
+
+                const startX = cellWidthRoom * index;
+    cellStartXPositions.push(startX); // Stockez les positions X de départ des cellules
+    textStartXPositions.push(startX);
                 const cell = new Konva.Rect({
                     width: cellWidthRoom - 1,
                     height: cellHeight - 1,
@@ -566,16 +572,21 @@ export function updateCalendar(
     let scrollContainer = document.getElementById('canvas-container');
 
     scrollContainer?.addEventListener('scroll', () => {
-        const scrollLeft = scrollContainer?.scrollLeft ?? 0;
 
-        
-        // roomCells.forEach(cell => {
-        //     cell.x(cellWidthRoom * 3 + scrollLeft);
-        // });
-        // roomTexts.forEach(text => {
-        //     text.x(cellWidthRoom * 3 + scrollLeft);
-        // });
-        // // tableLayer.batchDraw();
+        let scrollLeft=scrollContainer?.scrollLeft??0;
+        console.log(scrollLeft)
+
+       
+        roomCells.forEach((cell, key) => {
+            cell.x(cellStartXPositions[key] + scrollLeft);
+            cell.moveToTop();
+        });
+    
+        roomTexts.forEach((text, key) => {
+            text.x(textStartXPositions[key] + scrollLeft);
+            text.moveToTop();
+        });
+        tableLayer.batchDraw();
     });
 
 

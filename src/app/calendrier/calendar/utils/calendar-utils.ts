@@ -39,7 +39,17 @@ export function updateCalendar(
     const cellResizeWidth: Rect[] = []
     const voidCells: Rect[] = [];
     const textVoidCells: Text[] = [];
+    const cellResizeHeigth: Rect[] = [];
+    const transformerResizeHeigth: Konva.Transformer[] = []
     const cellsTransformersWidth: Konva.Transformer[] = []
+
+    const attributes = [
+        { key: 'name', color: '#f0f0f0' },
+        { key: 'category', color: '#f0f0f0' },
+        { key: 'type', color: '#f0f0f0' }
+    ];
+
+
     const yearDays = Number(Utility.getDaysInYear(currentYear));
     const monthDays = Number(Utility.getDaysInMonth(currentYear, currentMonth));
     const canvasWidth = limite === "année" ? cellWidthRoom * 3 + (cellWidth * yearDays) : cellWidthRoom * 3 + (cellWidth * monthDays);
@@ -438,11 +448,7 @@ export function updateCalendar(
     function createRoomInfoCells() {
 
         const { cellWidthRoom, rooms } = calendarData;
-        const attributes = [
-            { key: 'name', color: '#f0f0f0' },
-            { key: 'category', color: '#f0f0f0' },
-            { key: 'type', color: '#f0f0f0' }
-        ];
+
 
         for (let row = 1; row <= rooms.length; row++) {
             const positionY = row * cellHeight + 30 + cellHeight;
@@ -492,15 +498,53 @@ export function updateCalendar(
                 });
 
                 roomCells.push(cell);
-                roomTexts.push(text);
+                // roomTexts.push(text);
 
 
             });
         }
         tableLayer.add(...roomCells);
-        tableLayer.add(...roomTexts);
+        // tableLayer.add(...roomTexts);
 
     }
+
+    function redimensionRoomInfoCells(height: number) {
+        const originalPositionY = 30 + cellHeight * 2
+
+        let columnNumber = attributes.length - 1;
+        let currentRow = 0;
+        let currentColumn = 0;
+        // Redimensionnement des cellules en hauteur
+        roomCells.forEach((cell) => {
+            const positionY = originalPositionY + currentRow * height;
+            cell.y(positionY);
+            cell.height(height);
+
+            if (currentColumn == columnNumber) {
+                currentColumn = 0
+                currentRow++
+            } else {
+                currentColumn++
+            }
+
+
+            tableLayer.batchDraw();
+        });
+
+
+        // row = 1
+        // info = 1
+        // roomTexts.forEach((cell, key) => {
+        //     const positionY = row * height + 30 + cellHeight;
+        //     // cell.y(positionY)
+        //     cell.height(height);
+
+        //     tableLayer.batchDraw();
+        //     if (info == attributes.length) { row++; info = 1 }
+        //     else info++;
+        // })
+    }
+
 
     function resizeHeigth() {
         for (let row = rooms.length; row >= 1; row--) {
@@ -523,23 +567,32 @@ export function updateCalendar(
                 rotateEnabled: false,
                 enabledAnchors: ['bottom-center'],
                 boundBoxFunc: (oldBox, newBox) => {
-                    // Obtenir la nouvelle hauteur
-                    cellHeight = newBox.height;
+                    // cellHeight = newBox.height;
 
-                    updateCalendar(currentMonth, limite, calendarData, newBox.height, cellWidth, dialog)
+                    if (newBox.height < 10) {
+                        newBox.height = 10
+                        return newBox;
+                    } else if (newBox.width > 300) {
+                        newBox.width = 300
+                        return newBox;
+                    }
 
-                    // Redessiner la couche du tableau pour mettre à jour les changements
-                    tableLayer.draw();
+                    redimensionRoomInfoCells(newBox.height);
+                    redimensionVoidCells(cellWidth, newBox.height);
+
 
                     return newBox;
                 }
             });
-
-            tableLayer.add(t);
-            tableLayer.add(select);
+            cellResizeHeigth.push(select)
+            transformerResizeHeigth.push(t)
 
             t.nodes([select]);
         }
+
+
+        tableLayer.add(...cellResizeHeigth)
+        tableLayer.add(...transformerResizeHeigth)
     }
 
     function resizeWidth() {
@@ -549,7 +602,7 @@ export function updateCalendar(
             rotateEnabled: false,
             enabledAnchors: ['middle-right'],
             boundBoxFunc: (oldBox, newBox) => {
-
+                cellWidth = newBox.width;
                 if (newBox.width < 10) {
                     newBox.width = 10
                     return newBox;
@@ -559,7 +612,7 @@ export function updateCalendar(
                 }
                 rdimensionnerWeekCellsMonth(newBox.width)
                 redimenssionDayCellsMonth(newBox.width)
-                redimensionVoidCellsWidth(newBox.width)
+                redimensionVoidCells(newBox.width, cellHeight)
                 // redimenssionResize(newBox.width)
 
                 return newBox;
@@ -601,20 +654,20 @@ export function updateCalendar(
     }
 
 
-    function redimenssionResize(width: number) {
-        const w = limite == "année" ? yearDays : monthDays;
-        let i = 0;
-        for (let cell = w; cell >= 0; cell--) {
+    // function redimenssionResize(width: number) {
+    //     const w = limite == "année" ? yearDays : monthDays;
+    //     let i = 0;
+    //     for (let cell = w; cell >= 0; cell--) {
 
-            cellResizeWidth[i].width(width - 1);
-            cellResizeWidth[i].x(cellWidthRoom * 3 + (cell) * width);
-            i++;
+    //         cellResizeWidth[i].width(width - 1);
+    //         cellResizeWidth[i].x(cellWidthRoom * 3 + (cell) * width);
+    //         i++;
 
-            tableLayer.batchDraw()
-        }
+    //         tableLayer.batchDraw()
+    //     }
 
 
-    }
+    // }
 
     function createVoidCelles() {
         const { cellWidthRoom, rooms } = calendarData;
@@ -658,29 +711,44 @@ export function updateCalendar(
         tableLayer.add(...textVoidCells);
     }
 
-    function redimensionVoidCellsWidth(width: number) {
-        const numberLigne = (limite == "année" ? yearDays : monthDays) - 1;
-        let index = 0
-        voidCells.forEach((cell) => {
-            
-            const positionX = cellWidthRoom * 3 + index * width;
-            cell.x(positionX);
-            cell.width(width - 1);
-            
-            tableLayer.batchDraw();
-            if (index == numberLigne) index = 0;
-            else index++;
-            
-        })
 
-        textVoidCells.forEach((cell, key) => {
-            const positionX = cellWidthRoom * 3 + key * width;
-            cell.x(positionX);
-            cell.width(width - 1);
-            tableLayer.batchDraw();
-        })
 
+    function redimensionVoidCells(width: number, height: number) {
+        const numberColumns = (limite == "année" ? yearDays : monthDays) - 1;
+
+        const originalPositionY = 30 + cellHeight * 2
+        let currentRow = 0;
+        let currentColumn = 0;
+
+        voidCells.forEach((cell, index) => {
+
+            const positionX = cellWidthRoom * 3 + currentColumn * width;
+            const positionY = originalPositionY + height * currentRow;
+
+            cell.position({ x: positionX, y: positionY });
+            cell.width(width - 1);
+            cell.height(height);
+
+            textVoidCells[index].position({ x: positionX, y: positionY });
+            textVoidCells[index].width(width - 1);
+            textVoidCells[index].height(height);
+
+
+
+            if (currentColumn == numberColumns) {
+                console.log(`currentRow :${currentRow}`)
+                currentColumn = 0;
+                currentRow++;
+
+            } else {
+                currentColumn++;
+            }
+
+        });
+
+        tableLayer.batchDraw();
     }
+
 
 
     function createReservationCells() {

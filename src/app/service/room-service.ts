@@ -6,20 +6,37 @@ import { Booking } from 'src/app/models/booking';
   providedIn: 'root',
 })
 export class RoomService {
-  private rooms: Room[] = [
-    { roomId: 1, name: 'Chambre 101', category: 'Catégorie A', type: 'Simple' },
-    { roomId: 2, name: 'Chambre 102', category: 'Catégorie B', type: 'Double' },
-    { roomId: 3, name: 'Chambre 103', category: 'Catégorie A', type: 'Simple' },
-    { roomId: 4, name: 'Chambre 104', category: 'Catégorie C', type: 'Suite' },
-    { roomId: 5, name: 'Chambre 105', category: 'Catégorie B', type: 'Double' },
-    { roomId: 6, name: 'Chambre 106', category: 'Catégorie A', type: 'Simple' },
-  ];
+  private rooms: Room[] = [];
 
-  constructor() {}
+  constructor() {
+    // Créer quelques chambres par défaut
+    this.generateRooms(10); // Vous pouvez ajuster le nombre de chambres ici
+  }
+
+  private generateRooms(count: number): void {
+    for (let i = 1; i <= count; i++) {
+      const room: Room = {
+        roomId: i,
+        name: `Chambre ${i}`,
+        category: this.getRandomCategory(),
+        type: this.getRandomType(),
+      };
+      this.rooms.push(room);
+    }
+  }
+
+  private getRandomCategory(): string {
+    const categories = ['Catégorie A', 'Catégorie B', 'Catégorie C'];
+    return categories[Math.floor(Math.random() * categories.length)];
+  }
+
+  private getRandomType(): string {
+    const types = ['Simple', 'Double', 'Suite'];
+    return types[Math.floor(Math.random() * types.length)];
+  }
 
   getRooms(): Room[] {
     return this.rooms;
   }
-
-
 }
+

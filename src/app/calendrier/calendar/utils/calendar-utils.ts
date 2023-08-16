@@ -34,14 +34,15 @@ export function updateCalendar(
     const cellStartXPositions: number[] = [];
     const textStartXPositions: number[] = [];
     const weeksinfo: Rect[] = [];
+    const weeksText: Text[] = [];
     const daysinfo: Rect[] = [];
     const textDaysinfo: Text[] = [];
+    const roomCellsHeader: Rect[] = [];
+    const roomCellsHeaderText: Text[] = [];
     const cellResizeWidth: Rect[] = []
     const voidCells: Rect[] = [];
     const textVoidCells: Text[] = [];
     const cellResizeHeigth: Rect[] = [];
-    const transformerResizeHeigth: Konva.Transformer[] = []
-    const cellsTransformersWidth: Konva.Transformer[] = []
 
     const attributes = [
         { key: 'name', color: '#f0f0f0' },
@@ -54,10 +55,12 @@ export function updateCalendar(
     const monthDays = Number(Utility.getDaysInMonth(currentYear, currentMonth));
     const canvasWidth = limite === "année" ? cellWidthRoom * 3 + (cellWidth * yearDays) : cellWidthRoom * 3 + (cellWidth * monthDays);
 
+let heightTemp= cellHeight;
+let widthTemp = cellWidth;
     console.log(`cellHeight :${cellHeight} cellWidth:${cellWidth}`);
 
 
-    const tableStage = new Konva.Stage({
+    let tableStage = new Konva.Stage({
         container: 'table-container',
         width: canvasWidth,
         height: cellHeight * (rooms.length + 2) + 30,
@@ -106,8 +109,8 @@ export function updateCalendar(
                 width: joursDansMois * cellWidth - 1,
                 height: 30 - 1,
                 fill: '#f0f0f0',
-                stroke: 'black',
-                strokeWidth: 1,
+                stroke: 'gray',
+                strokeWidth: 0.5,
             });
             celluleMois.position({
                 x: positionX,
@@ -151,9 +154,9 @@ export function updateCalendar(
         var celluleMois = new Konva.Rect({
             width: joursDansMois * cellWidth - 1,
             height: 30 - 1,
-            fill: '#f0f0f0',
-            stroke: 'black',
-            strokeWidth: 1,
+            fill: '#A8A196',
+            stroke: 'gray',
+            strokeWidth: 0.5,
         });
         celluleMois.position({
             x: positionX,
@@ -207,8 +210,8 @@ export function updateCalendar(
                     width: (index === 0 && semaine === 0) ? (7 - premierJourDuMoisLundi) * cellWidth : 7 * cellWidth - 1,
                     height: cellHeight - 1,
                     fill: '#f0f0f0',
-                    stroke: 'black',
-                    strokeWidth: 1,
+                    stroke: 'gray',
+                    strokeWidth: 0.5,
                 });
 
                 celluleSemaine.position({
@@ -262,9 +265,10 @@ export function updateCalendar(
             var weekCell = new Konva.Rect({
                 width: (endDayOfWeek - startDayOfWeek + 1) * cellWidth - 1,
                 height: cellHeight - 1,
-                fill: '#f0f0f0',
-                stroke: 'black',
-                strokeWidth: 1,
+                fill: 'white',
+                stroke: 'gray',
+                strokeWidth: 0.5,
+                
             });
 
             weekCell.position({
@@ -279,7 +283,7 @@ export function updateCalendar(
                 align: 'left',
                 verticalAlign: 'middle',
                 fontSize: 16,
-                fill: 'black',
+                fill: '#279EFF',
             });
 
             text.position({
@@ -288,11 +292,10 @@ export function updateCalendar(
             });
 
             weeksinfo.push(weekCell);
-
-            // tableLayer.add(weekCell);
-            // tableLayer.add(text);
+            weeksText.push(text);
         }
         tableLayer.add(...weeksinfo);
+        tableLayer.add(...weeksText);
 
 
 
@@ -335,6 +338,20 @@ export function updateCalendar(
 
         });
 
+        weeksText.forEach((cell, key) => {
+            // Calculer le nombre de jours dans la semaine actuelle
+            const startDayOfWeek = key * 7 - firstDayOfMonth + 2;
+            const endDayOfWeek = Math.min(startDayOfWeek + 6, monthDays);
+            const startX = cellWidthRoom * 3 + Math.max(0, (startDayOfWeek - 1) * width);
+            const newWidth = (endDayOfWeek - startDayOfWeek + 1) * width - 1
+            cell.x(startX);
+            cell.width(newWidth)
+
+            tableLayer.batchDraw();
+
+        });
+
+
     }
 
     function createDayCellsYears() {
@@ -353,7 +370,7 @@ export function updateCalendar(
                     width: cellWidth - 1,
                     height: cellHeight - 1,
                     fill: '#ffffff',
-                    stroke: 'black',
+                    // stroke: 'black',
                 });
 
                 celluleJour.position({
@@ -371,7 +388,7 @@ export function updateCalendar(
                     align: 'center',
                     verticalAlign: 'middle',
                     fontSize: 16,
-                    fill: 'black',
+                    // fill: 'black',
                 });
 
                 text.position({
@@ -406,7 +423,8 @@ export function updateCalendar(
                 width: cellWidth - 1,
                 height: cellHeight - 1,
                 fill: '#ffffff',
-                stroke: 'black',
+                stroke: 'gray',
+                strokeWidth: 0.5,
             });
 
             celluleJour.position({
@@ -424,7 +442,7 @@ export function updateCalendar(
                 align: 'center',
                 verticalAlign: 'middle',
                 fontSize: 16,
-                fill: 'black',
+                fill: '#279EFF',
             });
 
             text.position({
@@ -450,6 +468,62 @@ export function updateCalendar(
         const { cellWidthRoom, rooms } = calendarData;
 
 
+        attributes.forEach((attr, index) => {
+            const startX = cellWidthRoom * index;
+            const cell = new Konva.Rect({
+                width: cellWidthRoom - 1,
+                height: 30 + cellHeight * 2,
+                fill: attr.color,
+                stroke: 'grey',
+                strokeWidth: 0.5,
+                className: 'table-cell'
+            });
+
+            cell.position({
+                x: cellWidthRoom * index,
+                y: 0
+            });
+
+
+
+
+            let textData = '';
+
+            if (index === 0) {
+                textData = "Nom";
+            } else if (index === 1) {
+                textData = "Categorie";
+            } else if (index === 2) {
+                textData = "Type";
+            }
+
+            const text = new Konva.Text({
+                text: textData,
+                width: cellWidthRoom,
+                height: 30 + cellHeight * 2,
+                align: 'center',
+                verticalAlign: 'middle',
+                fontSize: 14,
+                fontStyle: 'bold',
+                fill: 'black'
+            });
+
+            text.position({
+                x: cellWidthRoom * index,
+                y: 0
+            });
+
+            roomCellsHeader.push(cell);
+            roomCellsHeaderText.push(text);
+        })
+
+
+
+        tableLayer.add(...roomCellsHeader);
+        tableLayer.add(...roomCellsHeaderText);
+
+
+
         for (let row = 1; row <= rooms.length; row++) {
             const positionY = row * cellHeight + 30 + cellHeight;
 
@@ -462,8 +536,8 @@ export function updateCalendar(
                     width: cellWidthRoom - 1,
                     height: cellHeight - 1,
                     fill: attr.color,
-                    stroke: 'black',
-                    strokeWidth: 1,
+                    stroke: 'grey',
+                    strokeWidth: 0.5,
                     className: 'table-cell'
                 });
 
@@ -489,6 +563,7 @@ export function updateCalendar(
                     align: 'center',
                     verticalAlign: 'middle',
                     fontSize: 14,
+                    fontStyle: 'bold',
                     fill: 'black'
                 });
 
@@ -498,13 +573,13 @@ export function updateCalendar(
                 });
 
                 roomCells.push(cell);
-                // roomTexts.push(text);
+                roomTexts.push(text);
 
 
             });
         }
         tableLayer.add(...roomCells);
-        // tableLayer.add(...roomTexts);
+        tableLayer.add(...roomTexts);
 
     }
 
@@ -531,68 +606,91 @@ export function updateCalendar(
             tableLayer.batchDraw();
         });
 
+        currentRow = 0;
+        currentColumn = 0;
+        // Redimensionnement des cellules en hauteur
+        roomTexts.forEach((cell) => {
+            const positionY = originalPositionY + currentRow * height;
+            cell.y(positionY);
+            cell.height(height);
 
-        // row = 1
-        // info = 1
-        // roomTexts.forEach((cell, key) => {
-        //     const positionY = row * height + 30 + cellHeight;
-        //     // cell.y(positionY)
-        //     cell.height(height);
+            if (currentColumn == columnNumber) {
+                currentColumn = 0
+                currentRow++
+            } else {
+                currentColumn++
+            }
 
-        //     tableLayer.batchDraw();
-        //     if (info == attributes.length) { row++; info = 1 }
-        //     else info++;
-        // })
+
+            tableLayer.batchDraw();
+        });
     }
 
+    // function redimCellHeigth(height: number) {
 
+    //     let rowNumber = cellResizeHeigth.length - 1;
+    //     for (let row = rowNumber; row >= 0; row--) {
+    //         console.log(`new heigth:${height} row: ${row}`, cellResizeHeigth[row])
+    //         cellResizeHeigth[row].y(30 + cellHeight * 2 + height * row)
+    //         cellResizeHeigth[row].height(height)
+    //         tableLayer.batchDraw()
+    //     }
+
+
+
+
+    // }
     function resizeHeigth() {
+        var t = new Konva.Transformer({
+            rotateEnabled: false,
+            enabledAnchors: ['bottom-center'],
+            boundBoxFunc: (oldBox, newBox) => {
+             heightTemp = newBox.height;
+
+                if (newBox.height < 10) {
+                    newBox.height = 10
+                    return newBox;
+                } else if (newBox.width > 300) {
+                    newBox.width = 300
+                    return newBox;
+                }
+
+                redimensionRoomInfoCells(newBox.height);
+                redimensionVoidCells(widthTemp, newBox.height);
+                tableStage.height(newBox.height * (rooms.length + 2) + 30)
+                tableLayer.batchDraw();
+
+                return newBox;
+            }
+        });
         for (let row = rooms.length; row >= 1; row--) {
 
             // Créer la cellule de sélection pour les noms de chambre
             var select = new Konva.Rect({
                 width: cellWidthRoom * 3 - 1,
                 height: cellHeight - 1,
-                opacity: 0.1,
-                strokeWidth: 1,
+              opacity: 0.1,
+               
+                strokeWidth: 0.5,
                 className: 'table-cell'
             });
             select.position({
                 x: 0,
-                y: row * cellHeight + 30 + cellHeight,
+                y:  cellHeight + 30 + cellHeight,
             });
 
             // create new transformer
-            var t = new Konva.Transformer({
-                rotateEnabled: false,
-                enabledAnchors: ['bottom-center'],
-                boundBoxFunc: (oldBox, newBox) => {
-                    // cellHeight = newBox.height;
 
-                    if (newBox.height < 10) {
-                        newBox.height = 10
-                        return newBox;
-                    } else if (newBox.width > 300) {
-                        newBox.width = 300
-                        return newBox;
-                    }
-
-                    redimensionRoomInfoCells(newBox.height);
-                    redimensionVoidCells(cellWidth, newBox.height);
-
-
-                    return newBox;
-                }
-            });
             cellResizeHeigth.push(select)
-            transformerResizeHeigth.push(t)
 
-            t.nodes([select]);
+
         }
-
+        t.nodes([cellResizeHeigth[cellResizeHeigth.length - 1]]);
 
         tableLayer.add(...cellResizeHeigth)
-        tableLayer.add(...transformerResizeHeigth)
+        tableLayer.add(t)
+       
+
     }
 
     function resizeWidth() {
@@ -602,7 +700,10 @@ export function updateCalendar(
             rotateEnabled: false,
             enabledAnchors: ['middle-right'],
             boundBoxFunc: (oldBox, newBox) => {
-                cellWidth = newBox.width;
+
+
+
+                widthTemp = newBox.width;
                 if (newBox.width < 10) {
                     newBox.width = 10
                     return newBox;
@@ -612,8 +713,10 @@ export function updateCalendar(
                 }
                 rdimensionnerWeekCellsMonth(newBox.width)
                 redimenssionDayCellsMonth(newBox.width)
-                redimensionVoidCells(newBox.width, cellHeight)
-                // redimenssionResize(newBox.width)
+                redimensionVoidCells(newBox.width, heightTemp)
+                tableStage.width(limite === "année" ? cellWidthRoom * 3 + (newBox.width * yearDays) : cellWidthRoom * 3 + (newBox.width * monthDays))
+
+                tableLayer.batchDraw();
 
                 return newBox;
             }
@@ -626,7 +729,8 @@ export function updateCalendar(
                 width: cellWidth - 1,
                 height: cellHeight - 1,
                 opacity: 0.1,
-                strokeWidth: 1,
+                stroke: "gray",
+                strokeWidth: 0.5,
                 className: 'days-cell'
             });
 
@@ -668,28 +772,33 @@ export function updateCalendar(
 
 
     // }
-
     function createVoidCelles() {
         const { cellWidthRoom, rooms } = calendarData;
         const numberVoid = limite == "année" ? yearDays : monthDays;
-
-        const cellOptions = {
-            width: cellWidth - 1,
-            height: cellHeight - 1,
-            fill: 'white',
-            stroke: 'black',
-            strokeWidth: 1,
-            className: 'table-cell'
-        };
-
+    
+        // Définir les couleurs à utiliser
+        const colors = ['#F5F5F5', 'white'];
+        let currentColorIndex = 0; // Indice de la couleur actuelle
+    
         for (let row = 1; row <= rooms.length; row++) {
+            const color = colors[currentColorIndex];
             for (let col = 1; col <= numberVoid; col++) {
                 const positionX = cellWidthRoom * 3 + (col - 1) * cellWidth;
                 const positionY = row * cellHeight + 30 + cellHeight;
-
-                const cell = new Konva.Rect(cellOptions);
+    
+                // Utiliser la couleur actuelle
+    
+                const cell = new Konva.Rect({
+                    width: cellWidth - 1,
+                    height: cellHeight - 1,
+                    fill: color,
+                    stroke: 'gray',
+                    strokeWidth: 0.5,
+                    className: 'table-cell'
+                });
+    
                 cell.position({ x: positionX, y: positionY });
-
+    
                 const text = new Konva.Text({
                     text: '',
                     width: cellWidth,
@@ -699,18 +808,22 @@ export function updateCalendar(
                     fontSize: 14,
                     fill: 'black'
                 });
-
+    
                 text.position({ x: positionX, y: positionY });
-
+    
                 voidCells.push(cell);
                 textVoidCells.push(text);
-
+    
+              
             }
+              // Alterner entre les couleurs
+              currentColorIndex = (currentColorIndex + 1) % colors.length;
         }
+    
         tableLayer.add(...voidCells);
         tableLayer.add(...textVoidCells);
     }
-
+    
 
 
     function redimensionVoidCells(width: number, height: number) {
@@ -736,7 +849,6 @@ export function updateCalendar(
 
 
             if (currentColumn == numberColumns) {
-                console.log(`currentRow :${currentRow}`)
                 currentColumn = 0;
                 currentRow++;
 
@@ -792,11 +904,14 @@ export function updateCalendar(
     limite == "année" ? createMonthCellsAndHeaders() : createMonthCells();
     limite == "année" ? createWeekCellsYears() : createWeekCellsMonth();
     limite == "année" ? createDayCellsYears() : createDayCellsMonth();
+    createVoidCelles();
+    createReservationCells();
     createRoomInfoCells();
     resizeHeigth();
     resizeWidth();
-    createVoidCelles();
-    createReservationCells();
+    
+   
+    
 
     let scrollContainer = document.getElementById('canvas-container');
 
@@ -804,16 +919,33 @@ export function updateCalendar(
 
         let scrollLeft = scrollContainer?.scrollLeft ?? 0;
 
-
-        roomCells.forEach((cell, key) => {
+        roomCellsHeader.forEach((cell, key) => {
             cell.x(cellStartXPositions[key] + scrollLeft);
             cell.moveToTop();
         });
 
-        roomTexts.forEach((text, key) => {
+        roomCellsHeaderText.forEach((text, key) => {
             text.x(textStartXPositions[key] + scrollLeft);
             text.moveToTop();
         });
+
+        roomCells.forEach((cell, key) => {
+            cell.x(cellStartXPositions[key] + scrollLeft);
+            //  cell.moveToTop();
+        });
+
+        roomTexts.forEach((text, key) => {
+            text.x(textStartXPositions[key] + scrollLeft);
+            //  text.moveToTop();
+        });
+        console.log(cellResizeHeigth.length)
+
+        cellResizeHeigth[cellResizeHeigth.length - 1].x(scrollLeft)
+        
+        cellResizeHeigth[cellResizeHeigth.length - 1].y(cellHeight + 30 + cellHeight)
+        cellResizeHeigth[cellResizeHeigth.length - 1].moveToTop();
+
+      
         tableLayer.batchDraw();
     });
 

@@ -3,24 +3,24 @@
 }
 
 .left-content {
-  width: 15%;
-  border: 1px solid black;
+  width: 5%;
+  // border: 1px solid black;
 }
 .right-content{
-  width: 15%;
-  border: 1px solid black;
+  width: 5%;
+  // border: 1px solid black;
 }
 
 .center-content {
-  width: 70%;
+  width: 90%;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border: 1px solid black;
+  // border: 1px solid black;
 }
 .nav{
-  height: 10ch;
-  border: 1px solid black;
+  height: 5ch;
+  // border: 1px solid black;
 }
 .head-option {
   padding: 5px;
@@ -32,7 +32,7 @@
 
 
 #canvas-container {
-  height: calc(60vh - 22px);
+  height: calc(75vh - 22px);
   overflow: auto;
   border: 1px solid black;
 }

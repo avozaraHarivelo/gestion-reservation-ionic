@@ -4,9 +4,19 @@ import { Booking } from "src/app/models/booking";
 import { Room } from "src/app/models/room";
 import { MatDialog } from "@angular/material/dialog";
 
+export interface ReservationData {
+    rect: Konva.Rect;
+    text: Konva.Text;
+    row: number;
+    starDate: Date;
+    endDate: Date;
+}
+
 export class ReservationCell {
     private cellWidthDay: number;
     private cellHeight: number;
+    private widthTemp: number;
+    private heightTemp: number;
     private cellWidthRoom: number;
     private tableLayer: Konva.Layer;
     private rooms: Room[];
@@ -20,12 +30,49 @@ export class ReservationCell {
         rooms: Room[],
         bookings: Booking[]
     ) {
+        this.widthTemp = cellWidthDay;
+        this.heightTemp = cellHeight;
         this.cellWidthDay = cellWidthDay;
         this.cellHeight = cellHeight;
         this.cellWidthRoom = cellWidthRoom;
         this.tableLayer = tableLayer;
         this.rooms = rooms;
         this.bookings = bookings;
+    }
+
+
+
+
+    public updateReservationCell(resa: ReservationData,
+        tableStage: Konva.Stage,
+        row: number,
+        startDate: Date,
+        endDate: Date,
+        width: number,
+        height: number) {
+
+        this.widthTemp = width;
+        this.heightTemp = height;
+
+
+        const colStart = Math.floor((startDate.getDate() - 1) * width);
+        const colEnd = Math.floor((endDate.getDate() - 1) * width);
+
+        resa.rect.width(colEnd - colStart);
+        resa.rect.height(height);
+        resa.rect.x(colStart + this.cellWidthRoom * 3)
+        //Olana ngamba
+        resa.rect.y((row-1) * height + 30 + this.cellHeight*2);
+
+
+        resa.text.height(height);
+        resa.text.x(colStart + this.cellWidthRoom * 3)
+        resa.text.y((row-1) * height + 30 + this.cellHeight*2);
+        
+        console.log(`row ${row} voatsou`)
+
+        this.tableLayer.batchDraw();
+
     }
 
     public createReservationCell(
@@ -36,24 +83,36 @@ export class ReservationCell {
         dialog: MatDialog
     ) {
 
-       
+
 
         const colStart = Math.floor((startDate.getDate() - 1) * this.cellWidthDay);
         const colEnd = Math.floor((endDate.getDate() - 1) * this.cellWidthDay);
         const row = this.rooms.findIndex((room) => room.roomId === selectedRoom.roomId) + 1;
-         console.log(`colStart:${colStart} colEnd:${colEnd} row:${row} this.cellWidthDay:${this.cellWidthDay}`)
+        console.log(`colStart:${colStart} colEnd:${colEnd} row:${row} this.cellWidthDay:${this.cellWidthDay}`)
 
         const draggableCell = this.createDraggableCell(colStart, colEnd, row);
         const text = this.createText(selectedRoom, startDate, endDate);
 
+        let reservation: ReservationData = {
+            rect: draggableCell,
+            text: text,
+            row: row,
+            starDate: startDate,
+            endDate: endDate
+        };
+
+
         this.addEventListeners(draggableCell, text, selectedRoom, startDate, endDate, dialog, tableStage);
 
-        this.tableLayer.add(draggableCell,text);
+        this.tableLayer.add(draggableCell, text);
 
         this.addTransformer(draggableCell, text);
 
         this.tableLayer.draw();
+
+        return reservation;
     }
+
 
     private createDraggableCell(colStart: number, colEnd: number, row: number) {
         const cellWidthDay = this.cellWidthDay;
@@ -67,7 +126,7 @@ export class ReservationCell {
             draggable: true,
             className: "table-cell",
             position: {
-                x: colStart + this.cellWidthRoom*3,
+                x: colStart + this.cellWidthRoom * 3,
                 y: row * cellHeight + 30 + cellHeight,
             },
         });
@@ -82,22 +141,22 @@ export class ReservationCell {
         const cellHeight = this.cellHeight;
 
         return new Konva.Text({
-            text: this.findBooking(selectedRoom, startDate, endDate)?.name ?? "", 
+            text: this.findBooking(selectedRoom, startDate, endDate)?.name ?? "",
             fontSize: 18,
             height: cellHeight,
             align: "center",
             verticalAlign: "middle",
             fill: "black",
             position: {
-                x: colStart + this.cellWidthRoom*3,
-                y: cellHeight * (this.rooms.findIndex(room => room.roomId === selectedRoom.roomId) + 1)+ 30 + cellHeight,
+                x: colStart + this.cellWidthRoom * 3,
+                y: cellHeight * (this.rooms.findIndex(room => room.roomId === selectedRoom.roomId) + 1) + 30 + cellHeight,
             },
         });
     }
 
     private addEventListeners(draggableCell: Konva.Rect, text: Konva.Text, selectedRoom: Room, startDate: Date, endDate: Date, dialog: MatDialog, tableStage: Konva.Stage) {
         draggableCell.on("dragstart", () => {
-            [draggableCell,text].forEach(el => el.moveToTop());
+            [draggableCell, text].forEach(el => el.moveToTop());
             this.tableLayer.draw();
         });
 
@@ -107,13 +166,13 @@ export class ReservationCell {
 
         draggableCell.on('dragend', (e) => {
             const newPosition = e.target.position();
-            const cellX = Math.floor((newPosition.x - this.cellWidthRoom * 3) / this.cellWidthDay);
-            const cellY = Math.floor((newPosition.y - (30 + this.cellHeight)) / this.cellHeight);
+            const cellX = Math.floor((newPosition.x - this.cellWidthRoom * 3) / this.widthTemp);
+            const cellY = Math.floor((newPosition.y - (30 + this.heightTemp)) / this.heightTemp);
 
-            [ text,draggableCell].forEach(el => {
+            [text, draggableCell].forEach(el => {
                 el.position({
-                    x: this.cellWidthRoom * 3 + cellX * this.cellWidthDay,
-                    y: cellY * this.cellHeight + 30 + this.cellHeight,
+                    x: this.cellWidthRoom * 3 + cellX * this.widthTemp,
+                    y: cellY * this.heightTemp + 30 + this.heightTemp,
                 });
             });
 
@@ -127,8 +186,8 @@ export class ReservationCell {
 
             newPosition.y = Math.max(newPosition.y, 80 + this.cellHeight);
             newPosition.x = Math.max(newPosition.x, this.cellWidthRoom * 3);
-            newPosition.x = Math.min(newPosition.x, maxX);
-            newPosition.y = Math.min(newPosition.y, maxY);
+            // newPosition.x = Math.min(newPosition.x, maxX);
+            // newPosition.y = Math.min(newPosition.y, maxY);
 
             e.target.position(newPosition);
             this.tableLayer.draw();

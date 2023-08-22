@@ -24,7 +24,7 @@ export class Calendar {
         this.roomInfoCells = [];
     }
     
-    update() {
+    create() {
         this.createMonthCellsAndHeaders();
         this.createWeekCellsYears();
         this.createDayCellsYears();
@@ -41,17 +41,6 @@ export class Calendar {
     }
     
     private createMonthCellsAndHeaders() {
-        const monthLayer = new Konva.Layer(); // Create a new layer for month cells
-        const startX = this.cellWidthRoom * 3;
-        const startY = 30;
-
-        for (let i = 0; i < 12; i++) {
-            const monthName = this.getMonthName(i); // Implement your logic to get the month name
-            const monthCell = new MonthCell(this.stage, monthLayer, startX + i * this.cellWidth, startY, monthName);
-            this.monthCells.push(monthCell); // Add the created month cell to the array
-        }
-
-        this.stage.add(monthLayer); // Add the monthLayer to the stage
     }
     
     private createWeekCellsYears() {

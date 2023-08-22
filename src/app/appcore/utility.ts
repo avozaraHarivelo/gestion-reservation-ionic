@@ -1,6 +1,10 @@
 import { isMoment } from 'moment';
 
 export class Utility {
+  static monthNames: string[] = [
+    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+  ];
+
   public static getWeek(currentYear: number, currentMonth: number, startDayOfWeek: number) {
     const date = new Date(currentYear, currentMonth, startDayOfWeek);
     const onejan = new Date(date.getFullYear(), 0, 1);
@@ -111,6 +115,16 @@ export class Utility {
   // Fonction pour obtenir le nombre de jours dans un mois donné
   public static getDaysInMonth(year: number, month: number) {
     return new Date(year, month + 1, 0).getDate();
+  }
+
+  public static getMonthName(monthNumber: number): string {
+
+
+    if (monthNumber >= 0 && monthNumber <= 11) {
+      return this.monthNames[monthNumber];
+    } else {
+      return '';
+    }
   }
 
 }

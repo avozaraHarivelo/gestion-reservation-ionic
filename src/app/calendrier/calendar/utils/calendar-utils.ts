@@ -57,8 +57,8 @@ export function updateCalendar(
     const monthDays = Number(Utility.getDaysInMonth(currentYear, currentMonth));
     const canvasWidth = limite === "année" ? cellWidthRoom * 3 + (cellWidth * yearDays) : cellWidthRoom * 3 + (cellWidth * monthDays);
 
-let heightTemp= cellHeight;
-let widthTemp = cellWidth;
+    let heightTemp = cellHeight;
+    let widthTemp = cellWidth;
     console.log(`cellHeight :${cellHeight} cellWidth:${cellWidth}`);
 
 
@@ -97,99 +97,99 @@ let widthTemp = cellWidth;
         );
     }
 
-    // Méthode pour créer les cellules représentant les mois et les en-têtes
-    function createMonthCellsAndHeaders() {
+    // // Méthode pour créer les cellules représentant les mois et les en-têtes
+    // function createMonthCellsAndHeaders() {
 
-        let positionX = cellWidthRoom * 3;
-        // Parcourir les mois et afficher chaque mois côte à côte
-        monthName.forEach((mois, index) => {
+    //     let positionX = cellWidthRoom * 3;
+    //     // Parcourir les mois et afficher chaque mois côte à côte
+    //     monthName.forEach((mois, index) => {
 
-            var joursDansMois = Utility.getDaysInMonth(currentYear, index);
+    //         var joursDansMois = Utility.getDaysInMonth(currentYear, index);
 
-            // Créer une cellule pour représenter le mois
-            var celluleMois = new Konva.Rect({
-                width: joursDansMois * cellWidth - 1,
-                height: 30 - 1,
-                fill: '#f0f0f0',
-                stroke: 'gray',
-                strokeWidth: 0.5,
-            });
-            celluleMois.position({
-                x: positionX,
-                y: 0,
-            });
+    //         // Créer une cellule pour représenter le mois
+    //         var celluleMois = new Konva.Rect({
+    //             width: joursDansMois * cellWidth - 1,
+    //             height: 30 - 1,
+    //             fill: '#f0f0f0',
+    //             stroke: 'gray',
+    //             strokeWidth: 0.5,
+    //         });
+    //         celluleMois.position({
+    //             x: positionX,
+    //             y: 0,
+    //         });
 
-            // Créer la cellule Konva pour l'en-tête du mois
-            var enTeteMois = new Konva.Text({
-                text: `${mois} ${currentYear}`,
-                width: joursDansMois * cellWidth,
-                height: 30,
-                align: 'center',
-                verticalAlign: 'middle',
-                fontSize: 18,
-                fontStyle: 'bold',
-                fill: 'black',
-            });
+    //         // Créer la cellule Konva pour l'en-tête du mois
+    //         var enTeteMois = new Konva.Text({
+    //             text: `${mois} ${currentYear}`,
+    //             width: joursDansMois * cellWidth,
+    //             height: 30,
+    //             align: 'center',
+    //             verticalAlign: 'middle',
+    //             fontSize: 18,
+    //             fontStyle: 'bold',
+    //             fill: 'black',
+    //         });
 
-            enTeteMois.position({
-                x: positionX,
-                y: 0,
-            });
+    //         enTeteMois.position({
+    //             x: positionX,
+    //             y: 0,
+    //         });
 
-            tableLayer.add(celluleMois);
-            // Ajouter la cellule à la couche
-            tableLayer.add(enTeteMois);
+    //         tableLayer.add(celluleMois);
+    //         // Ajouter la cellule à la couche
+    //         tableLayer.add(enTeteMois);
 
-            // Mettre à jour la position (x) pour le prochain mois
-            positionX += joursDansMois * cellWidth;
-        });
-    }
-    function createMonthCells() {
+    //         // Mettre à jour la position (x) pour le prochain mois
+    //         positionX += joursDansMois * cellWidth;
+    //     });
+    // }
+    // function createMonthCells() {
 
-        let positionX = cellWidthRoom * 3;
-        // Parcourir les mois et afficher chaque mois côte à côte
+    //     let positionX = cellWidthRoom * 3;
+    //     // Parcourir les mois et afficher chaque mois côte à côte
 
 
-        var joursDansMois = Utility.getDaysInMonth(currentYear, currentMonth);
+    //     var joursDansMois = Utility.getDaysInMonth(currentYear, currentMonth);
 
-        // Créer une cellule pour représenter le mois
-        var celluleMois = new Konva.Rect({
-            width: joursDansMois * cellWidth - 1,
-            height: 30 - 1,
-            fill: '#A8A196',
-            stroke: 'gray',
-            strokeWidth: 0.5,
-        });
-        celluleMois.position({
-            x: positionX,
-            y: 0,
-        });
+    //     // Créer une cellule pour représenter le mois
+    //     var celluleMois = new Konva.Rect({
+    //         width: joursDansMois * cellWidth - 1,
+    //         height: 30 - 1,
+    //         fill: '#A8A196',
+    //         stroke: 'gray',
+    //         strokeWidth: 0.5,
+    //     });
+    //     celluleMois.position({
+    //         x: positionX,
+    //         y: 0,
+    //     });
 
-        // Créer la cellule Konva pour l'en-tête du mois
-        var enTeteMois = new Konva.Text({
-            text: `${monthName[currentMonth]} ${currentYear}`,
-            width: joursDansMois * cellWidth,
-            height: 30,
-            align: 'center',
-            verticalAlign: 'middle',
-            fontSize: 18,
-            fontStyle: 'bold',
-            fill: 'black',
-        });
+    //     // Créer la cellule Konva pour l'en-tête du mois
+    //     var enTeteMois = new Konva.Text({
+    //         text: `${monthName[currentMonth]} ${currentYear}`,
+    //         width: joursDansMois * cellWidth,
+    //         height: 30,
+    //         align: 'center',
+    //         verticalAlign: 'middle',
+    //         fontSize: 18,
+    //         fontStyle: 'bold',
+    //         fill: 'black',
+    //     });
 
-        enTeteMois.position({
-            x: positionX,
-            y: 0,
-        });
+    //     enTeteMois.position({
+    //         x: positionX,
+    //         y: 0,
+    //     });
 
-        tableLayer.add(celluleMois);
-        // Ajouter la cellule à la couche
-        tableLayer.add(enTeteMois);
+    //     tableLayer.add(celluleMois);
+    //     // Ajouter la cellule à la couche
+    //     tableLayer.add(enTeteMois);
 
-        // Mettre à jour la position (x) pour le prochain mois
-        positionX += joursDansMois * cellWidth;
+    //     // Mettre à jour la position (x) pour le prochain mois
+    //     positionX += joursDansMois * cellWidth;
 
-    }
+    // }
 
     function createWeekCellsYears() {
         let positionXSemaine = cellWidthRoom * 3;
@@ -270,7 +270,7 @@ let widthTemp = cellWidth;
                 fill: 'white',
                 stroke: 'gray',
                 strokeWidth: 0.5,
-                
+
             });
 
             weekCell.position({
@@ -647,7 +647,7 @@ let widthTemp = cellWidth;
             rotateEnabled: false,
             enabledAnchors: ['bottom-center'],
             boundBoxFunc: (oldBox, newBox) => {
-             heightTemp = newBox.height;
+                heightTemp = newBox.height;
 
                 if (newBox.height < 10) {
                     newBox.height = 10
@@ -679,7 +679,7 @@ let widthTemp = cellWidth;
             });
             select.position({
                 x: 0,
-                y:  cellHeight + 30 + cellHeight,
+                y: cellHeight + 30 + cellHeight,
             });
 
             // create new transformer
@@ -692,7 +692,7 @@ let widthTemp = cellWidth;
 
         tableLayer.add(...cellResizeHeigth)
         tableLayer.add(t)
-       
+
 
     }
 
@@ -801,7 +801,7 @@ let widthTemp = cellWidth;
                     className: 'table-cell'
                 });
                 cell.position({ x: positionX, y: positionY });
-    
+
                 const text = new Konva.Text({
                     text: '',
                     width: cellWidth,
@@ -811,9 +811,9 @@ let widthTemp = cellWidth;
                     fontSize: 14,
                     fill: 'black'
                 });
-    
+
                 text.position({ x: positionX, y: positionY });
-    
+
                 voidCells.push(cell);
                 textVoidCells.push(text);
 
@@ -826,7 +826,7 @@ let widthTemp = cellWidth;
         tableLayer.add(...voidCells);
         tableLayer.add(...textVoidCells);
     }
-    
+
 
 
     function redimensionVoidCells(width: number, height: number) {
@@ -866,7 +866,7 @@ let widthTemp = cellWidth;
 
     function updateReservationCells(width: number, height: number) {
 
-        reservations.forEach((r)=>{
+        reservations.forEach((r) => {
             updateReservationCell(r, width, height);
         })
     }
@@ -879,20 +879,20 @@ let widthTemp = cellWidth;
     }
 
 
-    function updateReservationCell(resa:ReservationData, width: number, height: number) {
+    function updateReservationCell(resa: ReservationData, width: number, height: number) {
 
-       
-            const startDate = new Date(resa.starDate);
-            const endDate = new Date(resa.endDate);
-            reservationCellInstance.updateReservationCell(resa,
-                tableStage,
-                resa.row,
-                startDate,
-                endDate,
-                width,
-                height
-            );
-        
+
+        const startDate = new Date(resa.starDate);
+        const endDate = new Date(resa.endDate);
+        reservationCellInstance.updateReservationCell(resa,
+            tableStage,
+            resa.row,
+            startDate,
+            endDate,
+            width,
+            height
+        );
+
     }
 
 

@@ -1,11 +1,12 @@
 import Konva from "konva";
 import { Utility } from "src/app/appcore/utility";
-import { ReservationCell } from "./reservation-cell";
+import { ReservationCell, ReservationData } from "./reservation-cell";
 import { Room } from "src/app/models/room";
 import { Booking } from "src/app/models/booking";
 import { MatDialog } from "@angular/material/dialog";
 import { Rect } from "konva/lib/shapes/Rect";
 import { Text } from "konva/lib/shapes/Text";
+import { Reservation } from "src/app/models/reservation";
 
 export interface CalendarData {
     currentYear: number;
@@ -42,6 +43,7 @@ export function updateCalendar(
     const cellResizeWidth: Rect[] = []
     const voidCells: Rect[] = [];
     const textVoidCells: Text[] = [];
+    const reservations: ReservationData[] = [];
     const cellResizeHeigth: Rect[] = [];
 
     const attributes = [
@@ -657,6 +659,7 @@ let widthTemp = cellWidth;
 
                 redimensionRoomInfoCells(newBox.height);
                 redimensionVoidCells(widthTemp, newBox.height);
+                updateReservationCells(widthTemp, newBox.height)
                 tableStage.height(newBox.height * (rooms.length + 2) + 30)
                 tableLayer.batchDraw();
 
@@ -669,8 +672,8 @@ let widthTemp = cellWidth;
             var select = new Konva.Rect({
                 width: cellWidthRoom * 3 - 1,
                 height: cellHeight - 1,
-              opacity: 0.1,
-               
+                opacity: 0.1,
+
                 strokeWidth: 0.5,
                 className: 'table-cell'
             });
@@ -714,6 +717,7 @@ let widthTemp = cellWidth;
                 rdimensionnerWeekCellsMonth(newBox.width)
                 redimenssionDayCellsMonth(newBox.width)
                 redimensionVoidCells(newBox.width, heightTemp)
+                updateReservationCells(newBox.width, heightTemp)
                 tableStage.width(limite === "année" ? cellWidthRoom * 3 + (newBox.width * yearDays) : cellWidthRoom * 3 + (newBox.width * monthDays))
 
                 tableLayer.batchDraw();
@@ -775,19 +779,19 @@ let widthTemp = cellWidth;
     function createVoidCelles() {
         const { cellWidthRoom, rooms } = calendarData;
         const numberVoid = limite == "année" ? yearDays : monthDays;
-    
+
         // Définir les couleurs à utiliser
         const colors = ['#F5F5F5', 'white'];
         let currentColorIndex = 0; // Indice de la couleur actuelle
-    
+
         for (let row = 1; row <= rooms.length; row++) {
             const color = colors[currentColorIndex];
             for (let col = 1; col <= numberVoid; col++) {
                 const positionX = cellWidthRoom * 3 + (col - 1) * cellWidth;
                 const positionY = row * cellHeight + 30 + cellHeight;
-    
+
                 // Utiliser la couleur actuelle
-    
+
                 const cell = new Konva.Rect({
                     width: cellWidth - 1,
                     height: cellHeight - 1,
@@ -796,7 +800,6 @@ let widthTemp = cellWidth;
                     strokeWidth: 0.5,
                     className: 'table-cell'
                 });
-    
                 cell.position({ x: positionX, y: positionY });
     
                 const text = new Konva.Text({
@@ -813,13 +816,13 @@ let widthTemp = cellWidth;
     
                 voidCells.push(cell);
                 textVoidCells.push(text);
-    
-              
+
+
             }
-              // Alterner entre les couleurs
-              currentColorIndex = (currentColorIndex + 1) % colors.length;
+            // Alterner entre les couleurs
+            currentColorIndex = (currentColorIndex + 1) % colors.length;
         }
-    
+
         tableLayer.add(...voidCells);
         tableLayer.add(...textVoidCells);
     }
@@ -861,7 +864,12 @@ let widthTemp = cellWidth;
         tableLayer.batchDraw();
     }
 
+    function updateReservationCells(width: number, height: number) {
 
+        reservations.forEach((r)=>{
+            updateReservationCell(r, width, height);
+        })
+    }
 
     function createReservationCells() {
         for (const booking of bookings) {
@@ -870,19 +878,37 @@ let widthTemp = cellWidth;
         }
     }
 
+
+    function updateReservationCell(resa:ReservationData, width: number, height: number) {
+
+       
+            const startDate = new Date(resa.starDate);
+            const endDate = new Date(resa.endDate);
+            reservationCellInstance.updateReservationCell(resa,
+                tableStage,
+                resa.row,
+                startDate,
+                endDate,
+                width,
+                height
+            );
+        
+    }
+
+
     function createReservationCell(booking: Booking) {
 
         const room = rooms.find((room) => room.roomId === booking.roomId);
         if (room && isReservationInCurrentMonth(booking)) {
             const startDate = new Date(booking.startDate);
             const endDate = new Date(booking.endDate);
-            reservationCellInstance.createReservationCell(
+            reservations.push(reservationCellInstance.createReservationCell(
                 tableStage,
                 room,
                 startDate,
                 endDate,
                 dialog
-            );
+            ));
         }
     }
 
@@ -909,9 +935,9 @@ let widthTemp = cellWidth;
     createRoomInfoCells();
     resizeHeigth();
     resizeWidth();
-    
-   
-    
+
+
+
 
     let scrollContainer = document.getElementById('canvas-container');
 
@@ -941,11 +967,11 @@ let widthTemp = cellWidth;
         console.log(cellResizeHeigth.length)
 
         cellResizeHeigth[cellResizeHeigth.length - 1].x(scrollLeft)
-        
+
         cellResizeHeigth[cellResizeHeigth.length - 1].y(cellHeight + 30 + cellHeight)
         cellResizeHeigth[cellResizeHeigth.length - 1].moveToTop();
 
-      
+
         tableLayer.batchDraw();
     });
 

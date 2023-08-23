@@ -1,5 +1,4 @@
-import { MonthCell } from "./month-cell";
-import { WeekCell } from "./week-cell";
+import { MonthCell, monthCellData } from "./month-cell";
 import { DayCell } from "./day-cell";
 import { VoidCell } from "./void-cell";
 import { RoomInfoCell } from "./room-info-cell";
@@ -7,11 +6,12 @@ import { Booking } from "./booking";
 import { Room } from "./room";
 import { MatDialog } from "@angular/material/dialog";
 import Konva from "konva";
+import { weekCellData } from "./week-cell";
 // Import other necessary modules and classes
 
 export class Calendar {
-    private monthCells: MonthCell[];
-    private weekCells: WeekCell[];
+    private monthCells: monthCellData[];
+    private weekCells: weekCellData[];
     private dayCells: DayCell[];
     private voidCells: VoidCell[];
     private roomInfoCells: RoomInfoCell[];

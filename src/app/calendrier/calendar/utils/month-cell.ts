@@ -1,16 +1,21 @@
 import Konva from 'konva';
 import { Utility } from 'src/app/appcore/utility';
 
+export interface monthCellData {
+    rect: Konva.Rect;
+    text: Konva.Text;
+}
+
 export class MonthCell {
     private cellWidth: number;
     private cellWidthInfo: number;
     private cellHeight: number = 30;
-    private limite: String;
+    private limite: string;
     private currentYear: number;
     private currentMonth: number;
     private tableLayer: Konva.Layer;
 
-    constructor(tableLayer: Konva.Layer, cellWidthInfo: number, limite: String, cellWidthDay: number, cellHeight: number, currentYear: number, currentMonth: number) {
+    constructor(tableLayer: Konva.Layer, cellWidthInfo: number, limite: string, cellWidthDay: number, cellHeight: number, currentYear: number, currentMonth: number) {
         this.cellWidth = cellWidthDay;
         this.cellWidthInfo = cellWidthInfo;
         this.cellHeight = cellHeight;
@@ -18,25 +23,28 @@ export class MonthCell {
         this.currentYear = currentYear;
         this.currentMonth = currentMonth;
         this.tableLayer = tableLayer;
-
-        this.createMonthCell();
     }
 
-    private createMonthCell() {
+    public createMonthCell(): monthCellData[] {
+        const monthCells: monthCellData[] = [];
         let positionX = this.cellWidthInfo * 3;
 
         if (this.limite === 'Année') {
             Utility.monthNames.forEach((mois, index) => {
-                this.createCell(positionX, mois, this.currentYear, index);
+                const cellData = this.createCell(positionX, mois, this.currentYear, index);
+                monthCells.push(cellData);
                 positionX += Utility.getDaysInMonth(this.currentYear, index) * this.cellWidth;
             });
         } else {
-            this.createCell(positionX, Utility.getMonthName(this.currentMonth), this.currentYear, this.currentMonth);
+            const cellData = this.createCell(positionX, Utility.getMonthName(this.currentMonth), this.currentYear, this.currentMonth);
+            monthCells.push(cellData);
             positionX += Utility.getDaysInMonth(this.currentYear, this.currentMonth) * this.cellWidth;
         }
+
+        return monthCells;
     }
 
-    private createCell(positionX: number, mois: string, year: number, month: number) {
+    private createCell(positionX: number, mois: string, year: number, month: number): monthCellData {
         const joursDansMois = Utility.getDaysInMonth(year, month);
 
         const celluleMois = new Konva.Rect({
@@ -69,5 +77,7 @@ export class MonthCell {
 
         this.tableLayer.add(celluleMois);
         this.tableLayer.add(enTeteMois);
+
+        return { rect: celluleMois, text: enTeteMois };
     }
 }

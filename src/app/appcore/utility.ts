@@ -117,6 +117,44 @@ export class Utility {
     return new Date(year, month + 1, 0).getDate();
   }
 
+  static getWeeksInYear(year: number): number {
+    const firstDayOfYear = new Date(year, 0, 1);
+    const lastDayOfYear = new Date(year, 11, 31);
+
+    // Calculate the difference in days between the last day of the year and the first Monday of the year
+    const daysUntilFirstMonday = (7 - firstDayOfYear.getDay() + 1) % 7;
+
+    // Calculate the difference in days between the last Sunday of the year and the last day of the year
+    const daysUntilLastSunday = (lastDayOfYear.getDay() === 0) ? 0 : 7 - lastDayOfYear.getDay();
+
+    // Calculate the total number of days in the year minus the days at the beginning and end that are not part of full weeks
+    const totalDaysInYear = (Date.UTC(year + 1, 0, 1) - Date.UTC(year, 0, 1)) / (1000 * 60 * 60 * 24);
+    const daysInFullWeeks = totalDaysInYear - daysUntilFirstMonday - daysUntilLastSunday;
+
+    // Calculate the number of full weeks in the year
+    const fullWeeks = Math.floor(daysInFullWeeks / 7);
+
+    // Add one to account for the partial week at the beginning or end
+    return fullWeeks + 1;
+  }
+
+  static getDateOfWeek(year: number, weekNumber: number): Date {
+    // Calculate the date of the first day of the year
+    const firstDayOfYear = new Date(year, 0, 1);
+
+    // Calculate the date of the first Monday of the year
+    const daysUntilFirstMonday = (7 - firstDayOfYear.getDay() + 1) % 7;
+    const firstMonday = new Date(firstDayOfYear);
+    firstMonday.setDate(firstDayOfYear.getDate() + daysUntilFirstMonday);
+
+    // Calculate the date of the requested week
+    const daysToAdd = (weekNumber - 1) * 7;
+    const targetDate = new Date(firstMonday);
+    targetDate.setDate(firstMonday.getDate() + daysToAdd);
+
+    return targetDate;
+  }
+
   public static getMonthName(monthNumber: number): string {
 
 

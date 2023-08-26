@@ -7,38 +7,37 @@ export interface DayCellData {
 }
 
 interface DayCellCreator {
-    createDayCell(x: number, dayNumber: number, width: number): Konva.Rect;
-    createDayText(x: number, dayNumber: number, width: number): Konva.Text;
+    createDayCell(x: number, height:number,dayNumber: number, width: number): Konva.Rect;
+    createDayText(x: number,height:number, dayNumber: number, width: number): Konva.Text;
 }
 
 class DefaultDayCellCreator implements DayCellCreator {
-    private cellHeight: number = 30;
 
     constructor(private currentYear: number) { }
 
-    createDayCell(x: number, dayNumber: number, width: number): Konva.Rect {
+    createDayCell(x: number,height:number, dayNumber: number, width: number): Konva.Rect {
         return new Konva.Rect({
             width: width - 1,
-            height: this.cellHeight - 1,
+            height: height- 1,
             fill: 'white',
             stroke: 'gray',
             strokeWidth: 0.5,
             x: x,
-            y: 30,
+            y: 60,
         });
     }
 
-    createDayText(x: number, dayNumber: number, width: number): Konva.Text {
+    createDayText(x: number,height:number, dayNumber: number, width: number): Konva.Text {
         return new Konva.Text({
             text: `${dayNumber}`,
             width: width,
-            height: this.cellHeight,
+            height: height,
             align: 'left',
             verticalAlign: 'middle',
             fontSize: 16,
             fill: '#279EFF',
             x: x,
-            y: 30,
+            y: 60,
         });
     }
 }
@@ -50,26 +49,26 @@ export class DayCell {
     private currentYear: number;
     private currentMonth: number;
     private tableLayer: Konva.Layer;
-    private type: string;
+    private limite: string;
     private dayCellCreator: DayCellCreator;
 
-    constructor(tableLayer: Konva.Layer, cellHeight: number, cellWidth: number, cellWidthInfo: number, currentYear: number, currentMonth: number, type: string) {
+    constructor(tableLayer: Konva.Layer, cellHeight: number, cellWidth: number, cellWidthInfo: number, currentYear: number, currentMonth: number, limite: string) {
         this.cellHeight = cellHeight;
         this.cellWidthInfo = cellWidthInfo;
         this.cellWidth = cellWidth;
         this.currentYear = currentYear;
         this.currentMonth = currentMonth;
-        this.type = type;
+        this.limite = limite;
         this.tableLayer = tableLayer;
 
         this.dayCellCreator = new DefaultDayCellCreator(this.currentYear); // Provide the currentYear
         this.createDayCells();
     }
 
-    private createDayCells() {
+    public createDayCells() {
         const days: DayCellData[] = [];
 
-        if (this.type === 'Année') {
+        if (this.limite === 'année') {
             days.push(...this.createYearDayCells());
         } else {
             days.push(...this.createMonthDayCells());
@@ -86,33 +85,112 @@ export class DayCell {
 
     private createYearDayCells(): DayCellData[] {
         const days: DayCellData[] = [];
-        const weeksInYear = Utility.getWeeksInYear(this.currentYear);
 
-        let positionXWeek = this.calculatePositionX(1);
 
-        for (let week = 1; week <= weeksInYear; week++) {
-            const weekNumber = week;
-            const weekStartDate = Utility.getDateOfWeek(this.currentYear, week);
 
-            for (let day = 0; day < 7; day++) {
-                const currentDate = new Date(weekStartDate);
-                currentDate.setDate(currentDate.getDate() + day);
 
-                const cellPositionX = positionXWeek + day * this.cellWidth;
-                const dayCell = this.dayCellCreator.createDayCell(cellPositionX, currentDate.getDate(), this.cellWidth);
-                const text = this.dayCellCreator.createDayText(cellPositionX + 10, currentDate.getDate(), this.cellWidth);
 
-                days.push({
-                    rect: dayCell,
-                    text: text,
+
+
+
+
+
+
+
+        let positionXDay = this.cellWidthInfo * 3;
+
+        // Parcourir les mois et afficher chaque mois côte à côte
+        Utility.monthNames.forEach((_mois, index) => {
+            const monthDays = Utility.getDaysInMonth(this.currentYear, index);
+
+            // Créer une boucle pour parcourir les jours du mois
+            for (let jour = 1; jour <= monthDays; jour++) {
+                const cellPositionX = positionXDay + (jour - 1) * this.cellWidth;
+
+                // Créer une cellule pour représenter le jour
+                const celluleJour = new Konva.Rect({
+                    width: this.cellWidth,
+                    height: this.cellHeight - 1,
+                    fill: 'white',
+                    stroke: 'gray',
+                    strokeWidth: 0.5,
                 });
 
-                this.tableLayer.add(dayCell);
+                celluleJour.position({
+                    x: cellPositionX,
+                    y: 60,
+                });
+
+                const currentDate = new Date(this.currentYear, index, jour);
+                const dayOfWeek = currentDate.toLocaleDateString('fr-FR', { weekday: 'short' });
+
+                const text = new Konva.Text({
+                    text: `${dayOfWeek} ${jour}`,
+                    width: this.cellWidth-1,
+                    height: this.cellHeight,
+                    align: 'center',
+                    verticalAlign: 'middle',
+                    fontSize: 16,
+                    // fill: 'black',
+                });
+
+                text.position({
+                    x: cellPositionX,
+                    y: 60,
+                });
+                days.push({
+                    rect: celluleJour,
+                    text: text,
+                });
+                this.tableLayer.add(celluleJour);
+                //  daysinfo.push(celluleJour);
                 this.tableLayer.add(text);
             }
 
-            positionXWeek += 7 * this.cellWidth;
-        }
+            positionXDay += monthDays * this.cellWidth;
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // const weeksInYear = Utility.getWeeksInYear(this.currentYear);
+
+        // let positionXWeek = this.calculatePositionX(1);
+
+        // for (let week = 1; week <= weeksInYear; week++) {
+          
+        //     const weekStartDate = Utility.getDateOfWeek(this.currentYear, week);
+
+        //     for (let day = 0; day < 7; day++) {
+        //         const currentDate = new Date(weekStartDate);
+               
+
+        //         currentDate.setDate(currentDate.getDate() + day);
+
+        //         const cellPositionX = positionXWeek + day * this.cellWidth;
+        //         const dayCell = this.dayCellCreator.createDayCell(cellPositionX,this.cellHeight, currentDate.getDate(), this.cellWidth);
+        //         const text = this.dayCellCreator.createDayText(cellPositionX + 10,this.cellHeight, currentDate.getDate(), this.cellWidth);
+
+        //         days.push({
+        //             rect: dayCell,
+        //             text: text,
+        //         });
+
+        //         this.tableLayer.add(dayCell);
+        //         this.tableLayer.add(text);
+        //     }
+
+        //     positionXWeek += 7 * this.cellWidth;
+        // }
 
         return days;
     }
@@ -125,8 +203,8 @@ export class DayCell {
         for (let day = 1; day <= monthDays; day++) {
             const startX = startXBase + (day - 1) * this.cellWidth;
 
-            const dayCell = this.dayCellCreator.createDayCell(startX, day, this.cellWidth);
-            const text = this.dayCellCreator.createDayText(startX + 10, day, this.cellWidth);
+            const dayCell = this.dayCellCreator.createDayCell(startX,this.cellHeight, day, this.cellWidth);
+            const text = this.dayCellCreator.createDayText(startX + 10, this.cellHeight,day, this.cellWidth);
 
             days.push({
                 rect: dayCell,

@@ -9,10 +9,13 @@ import Konva from 'konva';
 import { Layer } from 'konva/lib/Layer';
 import { Room } from 'src/app/models/room';
 import { Booking } from 'src/app/models/booking';
-import { CalendarData, updateCalendar } from './utils/calendar-utils';
+import { CalendarData } from './utils/calendar-utils';
 import { ChangeReservationArg } from '../change-reservation-arg';
 import { ReservationArg } from '../reservation-arg';
 import { NewReservationModalComponent } from 'src/app/components/new-reservation-modal/new-reservation-modal.component';
+import { Calendar } from './utils/calendar';
+import { Utility } from 'src/app/appcore/utility';
+import { Stage } from 'konva/lib/Stage';
 
 @Component({
   selector: 'app-calendar',
@@ -49,10 +52,33 @@ export class CalendarComponent implements OnInit {
     rooms: [],
     bookings: [],
   };
+  tableStage: Konva.Stage | undefined ;
 
-  constructor(private dialog: MatDialog, private roomService: RoomService, private reservationService: ReservationService) { }
+  
+  private calendarInstance: Calendar ; // Propriété pour stocker l'instance de la classe Calendar
+  constructor(private dialog: MatDialog, private roomService: RoomService, private reservationService: ReservationService) { 
+    this.calendarInstance = new Calendar(
+      this.calendarData,
+      this.selectedLimit,
+      this.year,
+      this.month,
+      this.cellWidthRoom,
+      this.cellWidthDay,
+      this.cellHeight,
+      this.tableLayer,
+      this.roomService,
+      this.bookings,
+      dialog,
+      this.tableStage!
+    );
+  }
 
   ngOnInit() {
+    this.tableStage= new Stage({ container: 'table-container'});
+    const currentDate = new Date(); // Obtenir la date actuelle
+    this.year = currentDate.getFullYear(); // Année en cours
+    this.month = currentDate.getMonth(); // Mois en cours (0-11, où janvier est 0)
+
     this.selectedLimit = "mois";
     this.fetchRoomsAndBookings();
     this.calendarData = {
@@ -62,13 +88,34 @@ export class CalendarComponent implements OnInit {
       rooms: this.rooms,
       bookings: this.bookings,
     };
-  
-    this.updateCalendar();
+
+
+    const yearDays = Number(Utility.getDaysInYear(this.year));
+    const monthDays = Number(Utility.getDaysInMonth(this.year, this.month));
+    this.tableStage.width(this.selectedLimit === "année" ? this.cellWidthRoom * 3 + (this.cellWidthDay * yearDays) : this.cellWidthRoom * 3 + (this.cellWidthDay * monthDays)),
+    this.tableStage.height(this.cellHeight * (this.roomService.getRooms().length + 2) + 30),
+   
+
+    this.calendarInstance = new Calendar(
+      this.calendarData,
+      this.selectedLimit,
+      this.year,
+      this.month,
+      this.cellWidthRoom,
+      this.cellWidthDay,
+      this.cellHeight,
+      this.tableLayer,
+      this.roomService,
+      this.bookings,
+      this.dialog,
+      this.tableStage
+    );
+    this.calendarInstance.createCalendar();
 
     // Écouter l'événement reservationAdded du composant NewReservationModalComponent
     this.dialog.afterAllClosed.subscribe(() => {
       this.fetchRoomsAndBookings();
-      this.updateCalendar();
+      this.calendarUpdate();
     });
   }
 
@@ -82,8 +129,18 @@ export class CalendarComponent implements OnInit {
     });
   }
 
-  private updateCalendar() {
-    updateCalendar(this.month,this.selectedLimit,this.calendarData, this.cellHeight, this.cellWidthDay, this.dialog);
+  private calendarUpdate() {
+    this.fetchRoomsAndBookings();
+    this.calendarInstance.limite =this.selectedLimit;
+    this.calendarInstance.currentMonth =this.month;
+    this.calendarInstance.currentYear =this.year;
+    this.calendarInstance.bookings =this.bookings;
+
+      const yearDays = Number(Utility.getDaysInYear(this.year));
+        const monthDays = Number(Utility.getDaysInMonth(this.year, this.month));
+
+    this.calendarInstance.tableStage.width(this.selectedLimit === "année" ? this.cellWidthRoom * 3 + (this.cellWidthDay * yearDays) : this.cellWidthRoom * 3 + (this.cellWidthDay * monthDays));
+    this.calendarInstance.createCalendar();
   }
 
   openNewReservationDialog() {
@@ -102,8 +159,7 @@ export class CalendarComponent implements OnInit {
   }
 
   onLimitChange() {
-  //  console.log(`limite: ${this.selectedLimit}`)
-    this.updateCalendar();
+    this.calendarUpdate();
   }
 
 
@@ -113,7 +169,7 @@ export class CalendarComponent implements OnInit {
       this.month = 11; // Si le mois est inférieur à 0, revenir à décembre (11)
       this.year--; // Décrémenter l'année lorsque nous atteignons janvier de l'année précédente
     }
-    this.updateCalendar(); // Mettre à jour le calendrier avec le mois et l'année actuels
+    this.calendarUpdate(); // Mettre à jour le calendrier avec le mois et l'année actuels
   }
 
   onNextMonth() {
@@ -122,6 +178,6 @@ export class CalendarComponent implements OnInit {
       this.month = 0; // Si le mois est supérieur à 11, revenir à janvier (0)
       this.year++; // Incrémenter l'année lorsque nous atteignons décembre de l'année suivante
     }
-    this.updateCalendar(); // Mettre à jour le calendrier avec le mois et l'année actuels
+    this.calendarUpdate(); // Mettre à jour le calendrier avec le mois et l'année actuels
   }
 }

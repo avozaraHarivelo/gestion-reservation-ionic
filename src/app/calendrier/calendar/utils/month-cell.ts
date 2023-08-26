@@ -29,7 +29,8 @@ export class MonthCell {
         const monthCells: monthCellData[] = [];
         let positionX = this.cellWidthInfo * 3;
 
-        if (this.limite === 'Année') {
+        if (this.limite === 'année') {
+            console.log(`limite année`)
             Utility.monthNames.forEach((mois, index) => {
                 const cellData = this.createCell(positionX, mois, this.currentYear, index);
                 monthCells.push(cellData);

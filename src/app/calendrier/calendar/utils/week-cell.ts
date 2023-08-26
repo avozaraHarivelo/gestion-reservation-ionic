@@ -18,7 +18,7 @@ class DefaultWeekCellCreator implements WeekCellCreator {
 
     createWeekCell(x: number, weekNumber: number, width: number): Konva.Rect {
         return new Konva.Rect({
-            width: width - 1,
+            width: width,
             height: this.cellHeight - 1,
             fill: 'white',
             stroke: 'gray',
@@ -62,21 +62,13 @@ export class WeekCell {
         this.type = type;
         this.tableLayer = tableLayer;
 
-        this.weekCellCreator = new DefaultWeekCellCreator(this.currentYear); // Provide the currentYear
+        this.weekCellCreator = new DefaultWeekCellCreator(this.currentYear);
         this.createWeekCells();
     }
 
-    private createWeekCells() {
-        const weeks: weekCellData[] = [];
-
-        if (this.type === 'Année') {
-            weeks.push(...this.createYearWeekCells());
-        } else {
-            weeks.push(...this.createMonthWeekCells());
-        }
-
+    public createWeekCells() {
+        const weeks: weekCellData[] = (this.type === 'année') ? this.createYearWeekCells() : this.createMonthWeekCells();
         this.tableLayer.batchDraw();
-
         return weeks;
     }
 
@@ -87,10 +79,10 @@ export class WeekCell {
 
     private createYearWeekCells(): weekCellData[] {
         const weeks: weekCellData[] = [];
-        const firstDayOfMonth = new Date(this.currentYear, 0, 1).getDay(); // January's first day
-        let positionXSemaine = this.calculatePositionX(0, firstDayOfMonth);
+        let positionXSemaine = this.cellWidthInfo * 3;
+        let oldSemaine = 0;
 
-        Utility.monthNames.forEach((_, index) => {
+        Utility.monthNames.forEach((_mois, index) => {
             const monthDays = Utility.getDaysInMonth(this.currentYear, index);
             const premierJourDuMois = new Date(this.currentYear, index, 1).getDay();
             const premierJourDuMoisLundi = premierJourDuMois === 0 ? 6 : premierJourDuMois - 1;
@@ -100,20 +92,14 @@ export class WeekCell {
                 const premierJourSemaine = semaine * 7 - premierJourDuMois + 1;
                 const numeroSemaine = Utility.getWeek(this.currentYear, index, premierJourSemaine);
 
-                if (numeroSemaine === 0) continue;
+                if (numeroSemaine === oldSemaine) {
+                    continue;
+                }
 
                 this.currentMonth = numeroSemaine;
-
-                const celluleSemaine = this.weekCellCreator.createWeekCell(
-                    positionXSemaine,
-                    numeroSemaine,
-                    (index === 0 && semaine === 0) ? (7 - premierJourDuMoisLundi) * this.cellWidth : 7 * this.cellWidth - 1
-                );
-                const texteSemaine = this.weekCellCreator.createWeekText(
-                    positionXSemaine + 10,
-                    numeroSemaine,
-                    (index === 0 && semaine === 0) ? (7 - premierJourDuMoisLundi) * this.cellWidth : 7 * this.cellWidth
-                );
+                const cellWidth = (index === 0 && semaine === 0) ? (7 - premierJourDuMoisLundi) * this.cellWidth : 7 * this.cellWidth;
+                const celluleSemaine = this.weekCellCreator.createWeekCell(positionXSemaine, numeroSemaine, cellWidth);
+                const texteSemaine = this.weekCellCreator.createWeekText(positionXSemaine + 10, numeroSemaine, cellWidth);
 
                 weeks.push({
                     rect: celluleSemaine,
@@ -123,7 +109,8 @@ export class WeekCell {
                 this.tableLayer.add(celluleSemaine);
                 this.tableLayer.add(texteSemaine);
 
-                positionXSemaine += (index === 0 && semaine === 0) ? (7 - premierJourDuMoisLundi) * this.cellWidth : 7 * this.cellWidth;
+                positionXSemaine += cellWidth;
+                oldSemaine = numeroSemaine;
             }
         });
 

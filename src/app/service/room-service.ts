@@ -1,12 +1,19 @@
 import { Injectable } from '@angular/core';
 import { Room } from 'src/app/models/room';
 import { Booking } from 'src/app/models/booking';
+import { Attribute } from '../calendrier/calendar/utils/room-info-cell';
+
 
 @Injectable({
   providedIn: 'root',
 })
 export class RoomService {
   private rooms: Room[] = [];
+  private attributes: Attribute[] = [
+    { key: 'name', color: '#f0f0f0' },
+    { key: 'category', color: '#f0f0f0' },
+    { key: 'type', color: '#f0f0f0' }
+];
 
   constructor() {
     // Créer quelques chambres par défaut
@@ -37,6 +44,10 @@ export class RoomService {
 
   getRooms(): Room[] {
     return this.rooms;
+  }
+
+  getRoomInfo(): Attribute[] {
+    return this.attributes;
   }
 }
 

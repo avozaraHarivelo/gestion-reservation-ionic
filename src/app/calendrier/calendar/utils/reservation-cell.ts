@@ -127,7 +127,7 @@ export class ReservationCell {
             className: "table-cell",
             position: {
                 x: colStart + this.cellWidthRoom * 3,
-                y: row * cellHeight + 30 + cellHeight,
+                y: row * cellHeight + 60,
             },
         });
     }
@@ -149,7 +149,7 @@ export class ReservationCell {
             fill: "black",
             position: {
                 x: colStart + this.cellWidthRoom * 3,
-                y: cellHeight * (this.rooms.findIndex(room => room.roomId === selectedRoom.roomId) + 1) + 30 + cellHeight,
+                y: cellHeight * (this.rooms.findIndex(room => room.roomId === selectedRoom.roomId) + 1) + 60,
             },
         });
     }

@@ -4,12 +4,22 @@ import { RoomInfoCell, RoomInfoData } from "./room-info-cell";
 import Konva from "konva";
 import { WeekCell, weekCellData } from "./week-cell";
 import { VoidCell, VoidCellData } from "./void-cell";
-import { CalendarData } from "./calendar-utils";
 import { Utility } from "src/app/appcore/utility";
 import { RoomService } from "src/app/service/room-service";
 import { ReservationCell } from "./reservation-cell";
 import { Booking } from "src/app/models/booking";
 import { MatDialog } from "@angular/material/dialog";
+import { Room } from "src/app/models/room";
+
+
+export interface CalendarData {
+    currentYear: number;
+    cellWidthRoom: number;
+    cellWidthDay: number;
+    rooms: Room[];
+    bookings: Booking[];
+}
+
 
 export class Calendar {
 
@@ -26,7 +36,6 @@ export class Calendar {
     currentMonth: number;
     private calendarData: CalendarData;
     limite: string;
-    reservationCellInstance: ReservationCell;
     bookings: Booking[];
 
     tableStage: Konva.Stage;
@@ -49,14 +58,7 @@ export class Calendar {
         this.cellHeight = cellHeight;
         this.bookings = bookings;
         this.tableStage = tableStage;
-        this.reservationCellInstance = new ReservationCell(
-            cellWidthDay,
-            cellHeight,
-            cellWidthInfo,
-            tableLayer,
-            this.roomService.getRooms(),
-            bookings
-        );
+      
 
     }
 
@@ -123,25 +125,32 @@ export class Calendar {
     }
 
     private createReservationCells() {
+        const reservationCellInstance = new ReservationCell(
+            this.cellWidthDay,
+            this.cellHeight,
+            this.cellWidthInfo,
+            this.tableLayer,
+            this.roomService.getRooms(),
+            this.bookings,
+            this.limite,
+            this.currentYear,
+            this.currentMonth,
+        );
         for (const booking of this.bookings) {
-
-            this.createReservationCell(booking);
-        }
-    }
-    private createReservationCell(booking: Booking) {
-
-        const room = this.roomService.getRooms().find((room) => room.roomId === booking.roomId);
-        if (room && this.isReservationInCurrentMonth(booking)) {
-            const startDate = new Date(booking.startDate);
-            const endDate = new Date(booking.endDate);
-            this.reservationCellInstance.createReservationCell(
-                this.tableStage,
-                room,
-                startDate,
-                endDate,
-                this.dialog
-            )
-                ;
+            const room = this.roomService.getRooms().find((room) => room.roomId === booking.roomId);
+      
+            if (room && this.isReservationInCurrentMonth(booking)) {
+                const startDate = new Date(booking.startDate);
+                const endDate = new Date(booking.endDate);
+               reservationCellInstance.createReservationCell(
+                    this.tableStage,
+                    room,
+                    startDate,
+                    endDate,
+                    this.dialog,
+                )
+                    ;
+            }
         }
     }
 

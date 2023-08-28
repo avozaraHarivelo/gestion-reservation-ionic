@@ -3,6 +3,7 @@ import { FormReservationComponent } from "src/app/components/form-reservation/fo
 import { Booking } from "src/app/models/booking";
 import { Room } from "src/app/models/room";
 import { MatDialog } from "@angular/material/dialog";
+import { Utility } from "src/app/appcore/utility";
 
 export interface ReservationData {
     rect: Konva.Rect;
@@ -21,6 +22,9 @@ export class ReservationCell {
     private tableLayer: Konva.Layer;
     private rooms: Room[];
     private bookings: Booking[];
+    private limite: string;
+    private currentYear: number;
+    private currentMonth: number;
 
     constructor(
         cellWidthDay: number,
@@ -28,7 +32,10 @@ export class ReservationCell {
         cellWidthRoom: number,
         tableLayer: Konva.Layer,
         rooms: Room[],
-        bookings: Booking[]
+        bookings: Booking[],
+        limite: string,
+        currentYear: number,
+        currentMonth: number,
     ) {
         this.widthTemp = cellWidthDay;
         this.heightTemp = cellHeight;
@@ -38,6 +45,9 @@ export class ReservationCell {
         this.tableLayer = tableLayer;
         this.rooms = rooms;
         this.bookings = bookings;
+        this.limite = limite;
+        this.currentYear = currentYear;
+        this.currentMonth = currentMonth;
     }
 
 
@@ -62,13 +72,13 @@ export class ReservationCell {
         resa.rect.height(height);
         resa.rect.x(colStart + this.cellWidthRoom * 3)
         //Olana ngamba
-        resa.rect.y((row-1) * height + 30 + this.cellHeight*2);
+        resa.rect.y((row - 1) * height + 30 + this.cellHeight * 2);
 
 
         resa.text.height(height);
         resa.text.x(colStart + this.cellWidthRoom * 3)
-        resa.text.y((row-1) * height + 30 + this.cellHeight*2);
-        
+        resa.text.y((row - 1) * height + 30 + this.cellHeight * 2);
+
         console.log(`row ${row} voatsou`)
 
         this.tableLayer.batchDraw();
@@ -81,12 +91,12 @@ export class ReservationCell {
         startDate: Date,
         endDate: Date,
         dialog: MatDialog
+
     ) {
 
 
-
-        const colStart = Math.floor((startDate.getDate() - 1) * this.cellWidthDay);
-        const colEnd = Math.floor((endDate.getDate() - 1) * this.cellWidthDay);
+        const colStart = Math.floor((this.limite == "année" ? Utility.getDayOfYear(startDate) - 1 : startDate.getDate() - 1) * this.cellWidthDay);
+        const colEnd = Math.floor((this.limite == "année" ? Utility.getDayOfYear(endDate) - 1 : endDate.getDate() - 1) * this.cellWidthDay);
         const row = this.rooms.findIndex((room) => room.roomId === selectedRoom.roomId) + 1;
         console.log(`colStart:${colStart} colEnd:${colEnd} row:${row} this.cellWidthDay:${this.cellWidthDay}`)
 
@@ -101,15 +111,22 @@ export class ReservationCell {
             endDate: endDate
         };
 
+        var reservationGroup = new Konva.Group({
+            x: colStart + this.cellWidthRoom * 3,
+            y: row * this.cellHeight + 60,
+            draggable: true,
+        });
 
-        this.addEventListeners(draggableCell, text, selectedRoom, startDate, endDate, dialog, tableStage);
+        reservationGroup.add(draggableCell)
+        reservationGroup.add(text)
+        this.addEventListeners(reservationGroup, selectedRoom, startDate, endDate, dialog, tableStage);
 
-        this.tableLayer.add(draggableCell, text);
 
-        this.addTransformer(draggableCell, text);
 
-        this.tableLayer.draw();
 
+        // this.addTransformer(draggableCell, text);
+
+        this.tableLayer.add(reservationGroup)
         return reservation;
     }
 
@@ -123,12 +140,8 @@ export class ReservationCell {
             height: cellHeight,
             fill: "blue",
             opacity: 1,
-            draggable: true,
             className: "table-cell",
-            position: {
-                x: colStart + this.cellWidthRoom * 3,
-                y: row * cellHeight + 60,
-            },
+
         });
     }
 
@@ -147,54 +160,63 @@ export class ReservationCell {
             align: "center",
             verticalAlign: "middle",
             fill: "black",
-            position: {
-                x: colStart + this.cellWidthRoom * 3,
-                y: cellHeight * (this.rooms.findIndex(room => room.roomId === selectedRoom.roomId) + 1) + 60,
-            },
+            padding: 10,
+
         });
     }
 
-    private addEventListeners(draggableCell: Konva.Rect, text: Konva.Text, selectedRoom: Room, startDate: Date, endDate: Date, dialog: MatDialog, tableStage: Konva.Stage) {
-        draggableCell.on("dragstart", () => {
-            [draggableCell, text].forEach(el => el.moveToTop());
-            this.tableLayer.draw();
-        });
+    private addEventListeners(reservationGroup: Konva.Group, selectedRoom: Room, startDate: Date, endDate: Date, dialog: MatDialog, tableStage: Konva.Stage) {
 
-        draggableCell.on("dblclick", () => {
+        reservationGroup.on("dblclick", () => {
             this.openReservationModal(selectedRoom, startDate, endDate, dialog);
         });
 
-        draggableCell.on('dragend', (e) => {
+
+
+        reservationGroup.on('dragend', (e) => {
             const newPosition = e.target.position();
             const cellX = Math.floor((newPosition.x - this.cellWidthRoom * 3) / this.widthTemp);
             const cellY = Math.floor((newPosition.y - (30 + this.heightTemp)) / this.heightTemp);
 
-            [text, draggableCell].forEach(el => {
-                el.position({
-                    x: this.cellWidthRoom * 3 + cellX * this.widthTemp,
-                    y: cellY * this.heightTemp + 30 + this.heightTemp,
-                });
+            reservationGroup.position({
+                x: this.cellWidthRoom * 3 + cellX * this.widthTemp,
+                y: cellY * this.heightTemp + 60 + this.heightTemp,
             });
 
-            this.tableLayer.draw();
         });
 
         const limitDragmove = (e: Konva.KonvaEventObject<DragEvent>) => {
             const newPosition = e.target.position();
-            const maxX = tableStage.width() - this.cellWidthDay;
-            const maxY = tableStage.height() - this.cellHeight;
 
-            newPosition.y = Math.max(newPosition.y, 80 + this.cellHeight);
+            const yearDays = Number(Utility.getDaysInYear(this.currentYear));
+            const monthDays = Number(Utility.getDaysInMonth(this.currentYear, this.currentMonth));
+            const colStart = Math.floor((startDate.getDate() - 1) * this.cellWidthDay);
+            const colEnd = Math.floor((endDate.getDate() - 1) * this.cellWidthDay);
+            const maxX = (this.limite === "année" ? this.cellWidthRoom * 3 + (this.cellWidthDay * yearDays) : this.cellWidthRoom * 3 + (this.cellWidthDay * monthDays)) - (colEnd - colStart);
+            const maxY = this.rooms.length * this.cellHeight + 60;
+
+            newPosition.y = Math.max(newPosition.y, 60 + this.cellHeight);
             newPosition.x = Math.max(newPosition.x, this.cellWidthRoom * 3);
-            // newPosition.x = Math.min(newPosition.x, maxX);
-            // newPosition.y = Math.min(newPosition.y, maxY);
+            newPosition.x = Math.min(newPosition.x, maxX);
+            newPosition.y = Math.min(newPosition.y, maxY);
 
             e.target.position(newPosition);
-            this.tableLayer.draw();
+            // this.tableLayer.batchDraw();
         };
 
-        draggableCell.on('dragmove', limitDragmove);
-        text.on('dragmove', limitDragmove);
+
+
+
+        reservationGroup.on('dragmove', limitDragmove);
+        // text.on('dragmove', limitDragmove);
+        // reservationGroup.on('dragmove', () => {
+        //     console.log(reservationGroup.y())
+        //     reservationGroup.y(this.cellHeight + 60);
+        //   });
+
+        // Math.max(blueGroup.y(), 50)
+      
+
     }
 
     private addTransformer(draggableCell: Konva.Rect, text: Konva.Text) {

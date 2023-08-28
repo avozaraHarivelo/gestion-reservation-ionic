@@ -9,11 +9,11 @@ import Konva from 'konva';
 import { Layer } from 'konva/lib/Layer';
 import { Room } from 'src/app/models/room';
 import { Booking } from 'src/app/models/booking';
-import { CalendarData } from './utils/calendar-utils';
+// import { CalendarData } from './utils/calendar-utils';
 import { ChangeReservationArg } from '../change-reservation-arg';
 import { ReservationArg } from '../reservation-arg';
 import { NewReservationModalComponent } from 'src/app/components/new-reservation-modal/new-reservation-modal.component';
-import { Calendar } from './utils/calendar';
+import { Calendar, CalendarData } from './utils/calendar';
 import { Utility } from 'src/app/appcore/utility';
 import { Stage } from 'konva/lib/Stage';
 

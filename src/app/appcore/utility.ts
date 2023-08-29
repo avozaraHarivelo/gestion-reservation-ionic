@@ -88,6 +88,11 @@ export class Utility {
     return dayOfYear;
   }
   
+  public static getDateFromDayOfYear(year: number, dayOfYear: number): Date {
+    const startOfYear = new Date(year, 0, 0);
+    const dateMillis = startOfYear.getTime() + dayOfYear * 24 * 60 * 60 * 1000;
+    return new Date(dateMillis);
+}
 
 
   public static getDaysInYear(year: number) {

@@ -17,8 +17,8 @@ export interface RoomInfoData {
 interface RoomInfoCellCreator {
     createRoomInfoCellHeader(x: number, attribute: Attribute, width: number): Konva.Rect;
     createRoomInfoTextHeader(x: number, textData: string, width: number): Konva.Text;
-    createRoomInfoCell(x: number,y:number, attribute: Attribute, width: number): Konva.Rect;
-    createRoomInfoText(x: number,y:number, textData: string, width: number): Konva.Text;
+    createRoomInfoCell(x: number, y: number, attribute: Attribute, width: number): Konva.Rect;
+    createRoomInfoText(x: number, y: number, textData: string, width: number): Konva.Text;
 }
 
 class DefaultRoomInfoCellCreator implements RoomInfoCellCreator {
@@ -51,10 +51,10 @@ class DefaultRoomInfoCellCreator implements RoomInfoCellCreator {
         });
     }
 
-    createRoomInfoCell(x: number,y:number, attribute: Attribute, width: number): Konva.Rect {
+    createRoomInfoCell(x: number, y: number, attribute: Attribute, width: number): Konva.Rect {
         return new Konva.Rect({
             width: width - 1,
-            height: this.cellHeight  - 1,
+            height: this.cellHeight - 1,
             fill: "white",
             stroke: 'grey',
             strokeWidth: 0.5,
@@ -63,7 +63,7 @@ class DefaultRoomInfoCellCreator implements RoomInfoCellCreator {
         });
     }
 
-    createRoomInfoText(x: number,y:number, textData: string, width: number): Konva.Text {
+    createRoomInfoText(x: number, y: number, textData: string, width: number): Konva.Text {
         return new Konva.Text({
             text: textData,
             width: width,
@@ -106,7 +106,33 @@ export class RoomInfoCell {
     }
 
     public createRoomInfoCells(): RoomInfoData[] {
-        const positionYBase =this.cellHeight + 30 * 2;
+        const positionYBase = this.cellHeight + 30 * 2;
+
+
+
+        for (let row = 0; row < this.rooms.length; row++) {
+            const positionY = row * this.cellHeight + positionYBase;
+            this.attributes.forEach((attr, index) => {
+                const positionX = this.cellWidthRoom * index;
+
+                const cell = this.roomInfoCellCreator.createRoomInfoCell(positionX, positionY, attr, this.cellWidthRoom);
+                const textData = this.getAttributeValueByIndex(this.rooms[row], attr.key);
+                const text = this.roomInfoCellCreator.createRoomInfoText(positionX, positionY, textData, this.cellWidthRoom);
+
+                this.roomCells.push({ rect: cell, text: text });
+
+                this.tableLayer.add(cell);
+                this.tableLayer.add(text);
+            });
+        }
+
+
+
+
+        return this.roomCells;
+    }
+
+    public createRoomHeader():RoomInfoData[] {
 
         this.attributes.forEach((attr, index) => {
 
@@ -121,26 +147,7 @@ export class RoomInfoCell {
             this.tableLayer.add(textHeader);
         });
 
-        for (let row = 0; row < this.rooms.length; row++) {
-            const positionY = row * this.cellHeight + positionYBase;
-            this.attributes.forEach((attr, index) => {
-                const positionX = this.cellWidthRoom * index;
-
-                const cell = this.roomInfoCellCreator.createRoomInfoCell(positionX,positionY, attr, this.cellWidthRoom);
-                const textData = this.getAttributeValueByIndex(this.rooms[row], attr.key);
-                const text = this.roomInfoCellCreator.createRoomInfoText(positionX, positionY,textData, this.cellWidthRoom);
-
-                this.roomCells.push({ rect: cell, text: text });
-
-                this.tableLayer.add(cell);
-                this.tableLayer.add(text);
-            });
-        }
-
-
-       
-        
-        return this.roomCells;
+        return this.roomCellsHeader;
     }
 
     private getAttributeValueByIndex(room: Room, attributeKey: keyof Room): string {
@@ -152,5 +159,6 @@ export class RoomInfoCell {
 
         return attributeValue;
     }
+
 
 }

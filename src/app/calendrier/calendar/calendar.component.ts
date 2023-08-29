@@ -16,6 +16,7 @@ import { NewReservationModalComponent } from 'src/app/components/new-reservation
 import { Calendar, CalendarData } from './utils/calendar';
 import { Utility } from 'src/app/appcore/utility';
 import { Stage } from 'konva/lib/Stage';
+import { ReservationCell } from './utils/reservation-cell';
 
 @Component({
   selector: 'app-calendar',
@@ -23,7 +24,7 @@ import { Stage } from 'konva/lib/Stage';
   styleUrls: ['./calendar.component.scss'],
 })
 export class CalendarComponent implements OnInit {
-  selectedLimit:string = "";
+  selectedLimit: string = "";
   @Input() year = 0;
   @Input() month = 0;
   @Input() day = 0;
@@ -52,11 +53,12 @@ export class CalendarComponent implements OnInit {
     rooms: [],
     bookings: [],
   };
-  tableStage: Konva.Stage | undefined ;
+  tableStage!: Konva.Stage;
 
-  
-  private calendarInstance: Calendar ; // Propriété pour stocker l'instance de la classe Calendar
-  constructor(private dialog: MatDialog, private roomService: RoomService, private reservationService: ReservationService) { 
+
+  private calendarInstance: Calendar;
+  private reservationInstance: ReservationCell;// Propriété pour stocker l'instance de la classe Calendar
+  constructor(private dialog: MatDialog, private roomService: RoomService, private reservationService: ReservationService) {
     this.calendarInstance = new Calendar(
       this.calendarData,
       this.selectedLimit,
@@ -69,12 +71,26 @@ export class CalendarComponent implements OnInit {
       this.roomService,
       this.bookings,
       dialog,
-      this.tableStage!
+      this.tableStage
+    );
+
+    this.reservationInstance = new ReservationCell(
+      this.cellWidthDay,
+      this.cellHeight,
+      this.cellWidthRoom,
+      this.tableLayer,
+      this.roomService.getRooms(),
+      this.bookings,
+      this.selectedLimit,
+      this.year,
+      this.month,
+      this.tableStage
     );
   }
 
   ngOnInit() {
-    this.tableStage= new Stage({ container: 'table-container'});
+    this.tableStage = new Stage({ container: 'table-container' });
+    this.tableStage.add(this.tableLayer);
     const currentDate = new Date(); // Obtenir la date actuelle
     this.year = currentDate.getFullYear(); // Année en cours
     this.month = currentDate.getMonth(); // Mois en cours (0-11, où janvier est 0)
@@ -94,23 +110,38 @@ export class CalendarComponent implements OnInit {
     const monthDays = Number(Utility.getDaysInMonth(this.year, this.month));
     this.tableStage.width(this.selectedLimit === "année" ? this.cellWidthRoom * 3 + (this.cellWidthDay * yearDays) : this.cellWidthRoom * 3 + (this.cellWidthDay * monthDays)),
     this.tableStage.height(this.cellHeight * (this.roomService.getRooms().length + 2) + 30),
-   
 
-    this.calendarInstance = new Calendar(
-      this.calendarData,
-      this.selectedLimit,
-      this.year,
-      this.month,
-      this.cellWidthRoom,
-      this.cellWidthDay,
-      this.cellHeight,
-      this.tableLayer,
-      this.roomService,
-      this.bookings,
-      this.dialog,
-      this.tableStage
-    );
+
+      this.calendarInstance = new Calendar(
+        this.calendarData,
+        this.selectedLimit,
+        this.year,
+        this.month,
+        this.cellWidthRoom,
+        this.cellWidthDay,
+        this.cellHeight,
+        this.tableLayer,
+        this.roomService,
+        this.bookings,
+        this.dialog,
+        this.tableStage
+      );
+      this.reservationInstance = new ReservationCell(
+        this.cellWidthDay,
+        this.cellHeight,
+        this.cellWidthRoom,
+        this.tableLayer,
+        this.roomService.getRooms(),
+        this.bookings,
+        this.selectedLimit,
+        this.year,
+        this.month,
+        this.tableStage
+      );
+      
     this.calendarInstance.createCalendar();
+     this.reservationInstance.createReservationCells(this.dialog);
+    this.reservationInstance.createReservationBySelect();
 
     // Écouter l'événement reservationAdded du composant NewReservationModalComponent
     this.dialog.afterAllClosed.subscribe(() => {
@@ -121,7 +152,7 @@ export class CalendarComponent implements OnInit {
 
   private fetchRoomsAndBookings() {
     this.rooms = this.roomService.getRooms();
-    
+
 
     this.reservationService.getBookings().subscribe((bookings: Booking[]) => {
       this.bookings = bookings;
@@ -131,16 +162,30 @@ export class CalendarComponent implements OnInit {
 
   private calendarUpdate() {
     this.fetchRoomsAndBookings();
-    this.calendarInstance.limite =this.selectedLimit;
-    this.calendarInstance.currentMonth =this.month;
-    this.calendarInstance.currentYear =this.year;
-    this.calendarInstance.bookings =this.bookings;
+    this.calendarInstance.limite = this.selectedLimit;
+    this.calendarInstance.currentMonth = this.month;
+    this.calendarInstance.currentYear = this.year;
+    this.calendarInstance.bookings = this.bookings;
 
-      const yearDays = Number(Utility.getDaysInYear(this.year));
-        const monthDays = Number(Utility.getDaysInMonth(this.year, this.month));
 
-    this.calendarInstance.tableStage.width(this.selectedLimit === "année" ? this.cellWidthRoom * 3 + (this.cellWidthDay * yearDays) : this.cellWidthRoom * 3 + (this.cellWidthDay * monthDays));
+    this.reservationInstance.limite = this.selectedLimit;
+    this.reservationInstance.bookings = this.bookings;
+    this.reservationInstance.currentYear = this.year;
+    this.reservationInstance.currentMonth = this.month;
+
+
+
+    const yearDays = Number(Utility.getDaysInYear(this.year));
+    const monthDays = Number(Utility.getDaysInMonth(this.year, this.month));
+    const width = this.selectedLimit === "année" ? this.cellWidthRoom * 3 + (this.cellWidthDay * yearDays) : this.cellWidthRoom * 3 + (this.cellWidthDay * monthDays);
+    this.calendarInstance.tableStage.width(width);
+    this.reservationInstance.tableStage.width(width);
+
+
+
     this.calendarInstance.createCalendar();
+    this.reservationInstance.createReservationCells(this.dialog)
+    this.reservationInstance.createReservationBySelect()
   }
 
   openNewReservationDialog() {

@@ -28,6 +28,7 @@ export class Calendar {
     private dayCells: DayCellData[];
     private voidCells: VoidCellData[];
     private roomInfoCells: RoomInfoData[];
+    private roomHeadersCells: RoomInfoData[];
     private tableLayer: Konva.Layer;
     private cellWidthDay: number;
     private cellHeight: number;
@@ -37,7 +38,7 @@ export class Calendar {
     private calendarData: CalendarData;
     limite: string;
     bookings: Booking[];
-
+    reservationCellInstance!: ReservationCell ;
     tableStage: Konva.Stage;
 
 
@@ -48,6 +49,7 @@ export class Calendar {
         this.dayCells = [];
         this.voidCells = [];
         this.roomInfoCells = [];
+        this.roomHeadersCells = [];
         this.tableLayer = tableLayer;
         this.currentYear = currentYear;
         this.cellWidthInfo = cellWidthInfo;
@@ -58,29 +60,39 @@ export class Calendar {
         this.cellHeight = cellHeight;
         this.bookings = bookings;
         this.tableStage = tableStage;
-      
+        // this.reservationCellInstance = new ReservationCell(
+        //     this.cellWidthDay,
+        //     this.cellHeight,
+        //     this.cellWidthInfo,
+        //     this.tableLayer,
+        //     this.roomService.getRooms(),
+        //     this.bookings,
+        //     this.limite,
+        //     this.currentYear,
+        //     this.currentMonth,
+        //     this.tableStage
+        // );
 
     }
 
     public createCalendar() {
-        console.log(`limite ${this.limite}`)
-        const { rooms } = this.calendarData;
-        // const yearDays = Number(Utility.getDaysInYear(this.currentYear));
-        // const monthDays = Number(Utility.getDaysInMonth(this.currentYear, this.currentMonth));
-        // const canvasWidth = this.limite === "année" ? this.cellWidthInfo * 3 + (this.cellWidthDay * yearDays) : this.cellWidthInfo * 3 + (this.cellWidthDay * monthDays);
-
-        // this.tableStage = new Konva.Stage({
-        //     container: 'table-container',
-        //     width: canvasWidth,
-        //     height: this.cellHeight * (rooms.length + 2) + 30,
-        // });
-
         this.tableStage.add(this.tableLayer);
+        this.reservationCellInstance = new ReservationCell(
+            this.cellWidthDay,
+            this.cellHeight,
+            this.cellWidthInfo,
+            this.tableLayer,
+            this.roomService.getRooms(),
+            this.bookings,
+            this.limite,
+            this.currentYear,
+            this.currentMonth,
+            this.tableStage
+        );
         this.createMonthCellsAndHeaders();
         this.createWeekCells();
         this.createDayCells();
         this.createVoidCells();
-        this.createReservationCells();
         this.createRoomInfoCells();
         this.resizeHeight();
         this.resizeWidth();
@@ -124,54 +136,16 @@ export class Calendar {
         this.voidCells = voidCell.createVoidCells();
     }
 
-    private createReservationCells() {
-        const reservationCellInstance = new ReservationCell(
-            this.cellWidthDay,
-            this.cellHeight,
-            this.cellWidthInfo,
-            this.tableLayer,
-            this.roomService.getRooms(),
-            this.bookings,
-            this.limite,
-            this.currentYear,
-            this.currentMonth,
-        );
-        for (const booking of this.bookings) {
-            const room = this.roomService.getRooms().find((room) => room.roomId === booking.roomId);
-      
-            if (room && this.isReservationInCurrentMonth(booking)) {
-                const startDate = new Date(booking.startDate);
-                const endDate = new Date(booking.endDate);
-               reservationCellInstance.createReservationCell(
-                    this.tableStage,
-                    room,
-                    startDate,
-                    endDate,
-                    this.dialog,
-                )
-                    ;
-            }
-        }
-    }
+   
 
     private createRoomInfoCells() {
         const roomInfoCell = new RoomInfoCell(this.tableLayer, this.cellWidthInfo, this.cellHeight, this.roomService);
         this.roomInfoCells = roomInfoCell.createRoomInfoCells();
+        this.roomHeadersCells = roomInfoCell.createRoomHeader();
+
     }
 
-    private isReservationInCurrentMonth(booking: Booking): boolean {
-        const startDate = new Date(booking.startDate);
-        const endDate = new Date(booking.endDate);
-
-
-        return (
-            startDate.getFullYear() === this.currentYear &&
-            startDate.getMonth() === this.currentMonth &&
-            endDate.getFullYear() === this.currentYear &&
-            endDate.getMonth() === this.currentMonth
-        );
-    }
-
+   
     private resizeHeight() {
         // Implementation for resizing cell heights
     }
@@ -181,7 +155,45 @@ export class Calendar {
     }
 
     private setupScrollListener() {
-        // Implementation for setting up scroll listener
+        let scrollContainer = document.getElementById('canvas-container');
+
+        scrollContainer?.addEventListener('scroll', () => {
+
+            let scrollLeft = scrollContainer?.scrollLeft ?? 0;
+
+            console.log(`scroll vers droite: ${scrollLeft}`)
+            this.roomHeadersCells.forEach((cell, key) => {
+                cell.rect.x(this.cellWidthInfo * key + scrollLeft);
+                cell.text.x(this.cellWidthInfo * key + scrollLeft);
+
+                cell.rect.moveToTop();
+                cell.text.moveToTop();
+            });
+
+
+
+            this.roomInfoCells.forEach((cell, key) => {
+                cell.rect.x(this.cellWidthInfo * (key % 3) + scrollLeft);
+                cell.text.x(this.cellWidthInfo * (key % 3) + scrollLeft);
+
+                cell.rect.moveToTop();
+                cell.text.moveToTop();
+            });
+
+            // roomTexts.forEach((text, key) => {
+            //     text.x(textStartXPositions[key] + scrollLeft);
+            //     //  text.moveToTop();
+            // });
+
+            // cellResizeHeigth[cellResizeHeigth.length - 1].x(scrollLeft)
+
+            // cellResizeHeigth[cellResizeHeigth.length - 1].y(cellHeight + 30 + cellHeight)
+            // cellResizeHeigth[cellResizeHeigth.length - 1].moveToTop();
+
+
+            this.tableLayer.batchDraw();
+        });
+
     }
 
     private adjustStageBorder() {

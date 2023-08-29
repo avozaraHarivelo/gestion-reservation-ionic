@@ -14,17 +14,18 @@ export interface ReservationData {
 }
 
 export class ReservationCell {
-    private cellWidthDay: number;
-    private cellHeight: number;
+    cellWidthDay: number;
+    cellHeight: number;
     private widthTemp: number;
     private heightTemp: number;
     private cellWidthRoom: number;
     private tableLayer: Konva.Layer;
-    private rooms: Room[];
-    private bookings: Booking[];
-    private limite: string;
-    private currentYear: number;
-    private currentMonth: number;
+    rooms: Room[];
+    bookings: Booking[];
+    limite: string;
+    currentYear: number;
+    currentMonth: number;
+    tableStage: Konva.Stage;
 
     constructor(
         cellWidthDay: number,
@@ -36,6 +37,7 @@ export class ReservationCell {
         limite: string,
         currentYear: number,
         currentMonth: number,
+        tableStage: Konva.Stage
     ) {
         this.widthTemp = cellWidthDay;
         this.heightTemp = cellHeight;
@@ -48,13 +50,11 @@ export class ReservationCell {
         this.limite = limite;
         this.currentYear = currentYear;
         this.currentMonth = currentMonth;
+        this.tableStage = tableStage;
     }
 
 
-
-
     public updateReservationCell(resa: ReservationData,
-        tableStage: Konva.Stage,
         row: number,
         startDate: Date,
         endDate: Date,
@@ -86,7 +86,6 @@ export class ReservationCell {
     }
 
     public createReservationCell(
-        tableStage: Konva.Stage,
         selectedRoom: Room,
         startDate: Date,
         endDate: Date,
@@ -119,7 +118,7 @@ export class ReservationCell {
 
         reservationGroup.add(draggableCell)
         reservationGroup.add(text)
-        this.addEventListeners(reservationGroup, selectedRoom, startDate, endDate, dialog, tableStage);
+        this.addEventListeners(reservationGroup, selectedRoom, startDate, endDate, dialog, this.tableStage);
 
 
 
@@ -130,6 +129,106 @@ export class ReservationCell {
         return reservation;
     }
 
+
+    private createResaBySelect(x: number, y: number, width: number, height: number) {
+
+        // let startDate = this.limite == "année" ? : getDayOfMonth()
+
+        const rowStart =  Math.round((y - 60+this.cellHeight) / this.cellHeight);
+
+
+        const colStart = Math.round((x - this.cellWidthRoom * 3) / this.cellWidthDay);
+        const colEnd = Math.round(((x + width) - this.cellWidthRoom * 3) / this.cellWidthDay);
+    }
+
+    public createReservationCells(dialog: MatDialog) {
+
+        for (const booking of this.bookings) {
+            const room = this.rooms.find((room) => room.roomId === booking.roomId);
+
+            if (room && this.isReservationInCurrentMonth(booking)) {
+                const startDate = new Date(booking.startDate);
+                const endDate = new Date(booking.endDate);
+                this.createReservationCell(
+                    room,
+                    startDate,
+                    endDate,
+                    dialog,
+                )
+                    ;
+            }
+        }
+
+        // this.tableStage.on('mousedown touchstart click', (e) => {
+        // do nothing if we mousedown on any shape
+
+        // console.log('tafiditra mousedown')
+
+        //   });
+        // this.createReservationBySelect()
+    }
+
+    public createReservationBySelect() {
+        var x1: number | undefined;
+        var y1: number | undefined;
+        var x2: number | undefined;
+        var y2: number | undefined;
+        var selectionRectangle = new Konva.Rect({
+            fill: 'rgba(0,0,255,0.5)',
+            visible: false,
+        });
+        this.tableLayer.add(selectionRectangle);
+
+        this.tableStage.on('mousedown touchstart', (e) => {
+            // do nothing if we mousedown on any shape
+            // if (e.target !== this.tableStage) {
+            //     return;
+            // }
+
+
+            e.evt.preventDefault();
+
+            x1 = this.tableStage.getPointerPosition()?.x;
+            y1 = this.tableStage.getPointerPosition()?.y;
+            x2 = this.tableStage.getPointerPosition()?.x;
+            y2 = this.tableStage.getPointerPosition()?.y;
+            console.log(`depart  x1:${x1} y1:${y1} x2:${x2} y2:${y2}`)
+            selectionRectangle.visible(true);
+            selectionRectangle.width(0);
+            selectionRectangle.height(0);
+        });
+
+        this.tableStage.on('mousemove touchmove', (e) => {
+            // do nothing if we didn't start selection
+            if (!selectionRectangle.visible()) {
+                return;
+            }
+            e.evt.preventDefault();
+            x2 = this.tableStage.getPointerPosition()?.x;
+            y2 = this.tableStage.getPointerPosition()?.y;
+
+            selectionRectangle.setAttrs({
+                x: Math.min(x1!, x2!),
+                y: Math.min(y1!, y2!),
+                width: Math.abs(x2! - x1!),
+                height: Math.abs(y2! - y1!),
+            });
+        });
+
+        this.tableStage.on('mouseup touchend', (e) => {
+            // do nothing if we didn't start selection
+            if (!selectionRectangle.visible()) {
+                return;
+            }
+            e.evt.preventDefault();
+            // update visibility in timeout, so we can check it in click event
+            setTimeout(() => {
+                selectionRectangle.visible(false);
+            });
+
+            console.log(`fin  x:${Math.min(x1!, x2!)} y:${Math.min(y1!, y2!)} width:${Math.abs(x2! - x1!)} height:${Math.abs(y2! - y1!)}`)
+        });
+    }
 
     private createDraggableCell(colStart: number, colEnd: number, row: number) {
         const cellWidthDay = this.cellWidthDay;
@@ -215,7 +314,7 @@ export class ReservationCell {
         //   });
 
         // Math.max(blueGroup.y(), 50)
-      
+
 
     }
 
@@ -246,6 +345,20 @@ export class ReservationCell {
         this.tableLayer.add(tr);
         tr.nodes([draggableCell, text]);
     }
+
+    private isReservationInCurrentMonth(booking: Booking): boolean {
+        const startDate = new Date(booking.startDate);
+        const endDate = new Date(booking.endDate);
+
+
+        return (
+            startDate.getFullYear() === this.currentYear &&
+            startDate.getMonth() === this.currentMonth &&
+            endDate.getFullYear() === this.currentYear &&
+            endDate.getMonth() === this.currentMonth
+        );
+    }
+
 
     private findBooking(
         selectedRoom: Room,

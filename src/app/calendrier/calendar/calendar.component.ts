@@ -74,7 +74,8 @@ export class CalendarComponent implements OnInit {
       this.tableStage
     );
 
-    this.reservationInstance = new ReservationCell(
+    this.reservationInstance = new ReservationCell(this.dialog,
+      reservationService,
       this.cellWidthDay,
       this.cellHeight,
       this.cellWidthRoom,
@@ -126,7 +127,7 @@ export class CalendarComponent implements OnInit {
         this.dialog,
         this.tableStage
       );
-      this.reservationInstance = new ReservationCell(
+      this.reservationInstance = new ReservationCell(this.dialog,this.reservationService,
         this.cellWidthDay,
         this.cellHeight,
         this.cellWidthRoom,
@@ -148,6 +149,12 @@ export class CalendarComponent implements OnInit {
       this.fetchRoomsAndBookings();
       this.calendarUpdate();
     });
+
+      this.reservationInstance.myEventEmitter.subscribe(() => {
+        //  console.log("miantso")
+        this.fetchRoomsAndBookings();
+      this.calendarUpdate();
+      });
   }
 
   private fetchRoomsAndBookings() {
@@ -156,7 +163,6 @@ export class CalendarComponent implements OnInit {
 
     this.reservationService.getBookings().subscribe((bookings: Booking[]) => {
       this.bookings = bookings;
-      console.log(`bookins:${bookings}`)
     });
   }
 

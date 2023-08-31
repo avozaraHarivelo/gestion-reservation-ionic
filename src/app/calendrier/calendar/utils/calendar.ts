@@ -77,18 +77,18 @@ export class Calendar {
 
     public createCalendar() {
         this.tableStage.add(this.tableLayer);
-        this.reservationCellInstance = new ReservationCell(
-            this.cellWidthDay,
-            this.cellHeight,
-            this.cellWidthInfo,
-            this.tableLayer,
-            this.roomService.getRooms(),
-            this.bookings,
-            this.limite,
-            this.currentYear,
-            this.currentMonth,
-            this.tableStage
-        );
+        // this.reservationCellInstance = new ReservationCell(
+        //     this.cellWidthDay,
+        //     this.cellHeight,
+        //     this.cellWidthInfo,
+        //     this.tableLayer,
+        //     this.roomService.getRooms(),
+        //     this.bookings,
+        //     this.limite,
+        //     this.currentYear,
+        //     this.currentMonth,
+        //     this.tableStage
+        // );
         this.createMonthCellsAndHeaders();
         this.createWeekCells();
         this.createDayCells();

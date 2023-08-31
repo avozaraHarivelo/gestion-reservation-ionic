@@ -2,9 +2,9 @@
   <div>
     <div class="containerNavigationBar">
       <div class="panelNavigationBar">
-    
-     <button mat-raised-button color="primary" (click)="onPrevMonth()">Mois précédent</button>&nbsp;
-        <button mat-raised-button color="primary" (click)="onNextMonth()">Mois suivant</button>&nbsp; 
+
+        <button mat-raised-button color="primary" (click)="onPrevMonth()">Mois précédent</button>&nbsp;
+        <button mat-raised-button color="primary" (click)="onNextMonth()">Mois suivant</button>&nbsp;
         <button mat-raised-button color="secondary" (click)="openNewReservationDialog()">Nouvelle réservation</button>
       </div>
     </div>
@@ -15,26 +15,32 @@
 
   <div class="content-container">
     <div class="left-content">
-    
+
     </div>
     <div class="center-content">
       <div class="head-option">
         <mat-form-field>
           <mat-label>Limite de scroll</mat-label>
           <mat-select [(ngModel)]="selectedLimit" (ngModelChange)="onLimitChange()">
-            <mat-option  value="mois">Mois</mat-option>
+            <mat-option value="mois">Mois</mat-option>
             <mat-option value="année">Année</mat-option>
           </mat-select>
         </mat-form-field>
-        
-        
+
+
       </div>
       <div id="canvas-container">
         <div id="table-container"></div>
+        <div id="menu">
+          <div>
+            <button id="decoupe-button">Découper</button
+            >
+          </div>
+        </div>
       </div>
     </div>
     <div class="right-content">
-      
+
     </div>
   </div>
 </div>

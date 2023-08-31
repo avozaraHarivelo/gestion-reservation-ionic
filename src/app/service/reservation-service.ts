@@ -69,6 +69,33 @@ export class ReservationService {
     return of('ok');
   }
 
+  splitReservation(parentBooking: Booking|undefined): void {
+    const middleDate = new Date(
+        parentBooking!.startDate.getTime() + (parentBooking!.endDate.getTime() - parentBooking!.startDate.getTime()) / 2
+    );
+
+    const newBooking1: Booking = {
+        bookingId: this.maxValue(this.bookings) + 1,
+        roomId: parentBooking!.roomId,
+        startDate: parentBooking!.startDate,
+        endDate: middleDate,
+        name: parentBooking!.name,
+    };
+
+    const newBooking2: Booking = {
+        bookingId: this.maxValue(this.bookings) + 2,
+        roomId: parentBooking!.roomId,
+        startDate: middleDate,
+        endDate: parentBooking!.endDate,
+        name: parentBooking!.name,
+    };
+
+    this.bookings = this.bookings.filter(booking => booking.bookingId !== parentBooking!.bookingId);
+    this.bookings.push(newBooking1);
+    this.bookings.push(newBooking2);
+    console.log(this.bookings)
+}
+
   updateReservation(booking: Booking): Observable<string> {
     const list = this.getAllBooking();
 // console.log(booking)

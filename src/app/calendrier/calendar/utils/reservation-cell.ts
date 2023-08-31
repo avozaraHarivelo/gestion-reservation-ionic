@@ -4,6 +4,8 @@ import { Booking } from "src/app/models/booking";
 import { Room } from "src/app/models/room";
 import { MatDialog } from "@angular/material/dialog";
 import { Utility } from "src/app/appcore/utility";
+import { ReservationService } from "src/app/service/reservation-service";
+import { EventEmitter } from "@angular/core";
 
 export interface ReservationData {
     rect: Konva.Rect;
@@ -14,6 +16,7 @@ export interface ReservationData {
 }
 
 export class ReservationCell {
+    dialog: MatDialog;
     cellWidthDay: number;
     cellHeight: number;
     private widthTemp: number;
@@ -26,8 +29,9 @@ export class ReservationCell {
     currentYear: number;
     currentMonth: number;
     tableStage: Konva.Stage;
+    public myEventEmitter: EventEmitter<any> = new EventEmitter<any>();
 
-    constructor(
+    constructor(dialog: MatDialog, private reservationService: ReservationService, // Injectez le service RoomService ici.
         cellWidthDay: number,
         cellHeight: number,
         cellWidthRoom: number,
@@ -39,6 +43,7 @@ export class ReservationCell {
         currentMonth: number,
         tableStage: Konva.Stage
     ) {
+        this.dialog = dialog;
         this.widthTemp = cellWidthDay;
         this.heightTemp = cellHeight;
         this.cellWidthDay = cellWidthDay;
@@ -118,6 +123,7 @@ export class ReservationCell {
 
         reservationGroup.add(draggableCell)
         reservationGroup.add(text)
+
         this.addEventListeners(reservationGroup, selectedRoom, startDate, endDate, dialog, this.tableStage);
 
 
@@ -134,7 +140,7 @@ export class ReservationCell {
 
         // let startDate = this.limite == "année" ? : getDayOfMonth()
 
-        const rowStart =  Math.round((y - 60+this.cellHeight) / this.cellHeight);
+        const rowStart = Math.round((y - 60 + this.cellHeight) / this.cellHeight);
 
 
         const colStart = Math.round((x - this.cellWidthRoom * 3) / this.cellWidthDay);
@@ -142,7 +148,6 @@ export class ReservationCell {
     }
 
     public createReservationCells(dialog: MatDialog) {
-
         for (const booking of this.bookings) {
             const room = this.rooms.find((room) => room.roomId === booking.roomId);
 
@@ -192,7 +197,7 @@ export class ReservationCell {
             y1 = this.tableStage.getPointerPosition()?.y;
             x2 = this.tableStage.getPointerPosition()?.x;
             y2 = this.tableStage.getPointerPosition()?.y;
-            console.log(`depart  x1:${x1} y1:${y1} x2:${x2} y2:${y2}`)
+            // console.log(`depart  x1:${x1} y1:${y1} x2:${x2} y2:${y2}`)
             selectionRectangle.visible(true);
             selectionRectangle.width(0);
             selectionRectangle.height(0);
@@ -226,7 +231,7 @@ export class ReservationCell {
                 selectionRectangle.visible(false);
             });
 
-            console.log(`fin  x:${Math.min(x1!, x2!)} y:${Math.min(y1!, y2!)} width:${Math.abs(x2! - x1!)} height:${Math.abs(y2! - y1!)}`)
+
         });
     }
 
@@ -253,7 +258,7 @@ export class ReservationCell {
         const cellHeight = this.cellHeight;
 
         return new Konva.Text({
-            text: this.findBooking(selectedRoom, startDate, endDate)?.name ?? "",
+            text: this.findBooking(selectedRoom, startDate)?.name ?? "",
             fontSize: 18,
             height: cellHeight,
             align: "center",
@@ -265,6 +270,95 @@ export class ReservationCell {
     }
 
     private addEventListeners(reservationGroup: Konva.Group, selectedRoom: Room, startDate: Date, endDate: Date, dialog: MatDialog, tableStage: Konva.Stage) {
+        // Créez un groupe pour contenir les éléments du menu
+        var menuGroup = new Konva.Group();
+        this.tableLayer.add(menuGroup);
+
+        // Créez un rectangle pour représenter le menu
+        var menuRect = new Konva.Rect({
+            width: 200,
+            height: 100,
+            fill: 'lightgray',
+            cornerRadius: 10
+        });
+        menuGroup.add(menuRect);
+
+        // Créez un rectangle pour représenter le bouton "Découper"
+        var buttonRect = new Konva.Rect({
+            x: 20,
+            y: 20,
+            width: 160,
+            height: 40,
+            fill: 'blue',
+            cornerRadius: 5
+        });
+        menuGroup.add(buttonRect);
+
+        // Créez un texte pour le label du bouton
+        var buttonText = new Konva.Text({
+            x: 30,
+            y: 30,
+            text: 'Découper',
+            fontSize: 18,
+            fill: 'white'
+        });
+        menuGroup.add(buttonText);
+
+        // Cachez le menu par défaut
+        menuGroup.visible(false);
+
+
+        reservationGroup.on('contextmenu', (e) => {
+            e.evt.preventDefault();
+            console.log("Menu  cliqué !");
+            menuGroup.position({ x: this.tableStage.getPointerPosition()?.x ?? 0, y: this.tableStage.getPointerPosition()?.y ?? 0 });
+            menuGroup.visible(true);
+            menuGroup.moveToTop()
+            this.tableLayer.batchDraw();
+
+        });
+        window.addEventListener('click', () => {
+            // hide menu
+            menuGroup.visible(false);
+        });
+
+
+        // Gérez le clic sur le bouton "Découper"
+        buttonRect.on('click', () => {
+            var x1: number | undefined;
+            var y1: number | undefined;
+
+            x1 = this.tableStage.getPointerPosition()?.x;
+            y1 = this.tableStage.getPointerPosition()?.y;
+
+            const rowStart = Math.round((y1! - 60 -this.cellHeight) / this.cellHeight);
+            const colStart = Math.round((x1! - this.cellWidthRoom * 3) / this.cellWidthDay);
+            const dateStart = this.limite == "année" ? Utility.getDateFromDayOfYear(this.currentYear, colStart) : new Date(this.currentYear, this.currentMonth, colStart);
+
+            menuGroup.visible(false);
+            this.reservationService.splitReservation(this.findBooking2(rowStart, dateStart))
+            this.myEventEmitter.emit(/* pass any necessary data here */);
+        });
+        // document.getElementById('decoupe-button')?.addEventListener('click', () => {
+
+        //         console.log("event")
+        //         var x1: number | undefined;
+        //         var y1: number | undefined;
+
+        //         x1 = this.tableStage.getPointerPosition()?.x;
+        //         y1 = this.tableStage.getPointerPosition()?.y;
+
+        //         const rowStart = Math.round((y1! - 60 - this.cellHeight) / this.cellHeight);
+        //         const colStart = Math.round((x1! - this.cellWidthRoom * 3) / this.cellWidthDay);
+        //         const dateStart = this.limite == "année" ? Utility.getDateFromDayOfYear(this.currentYear, colStart) : new Date(this.currentYear, this.currentMonth, colStart);
+
+        //         // Emit the event using your custom EventEmitter
+        //         this.myEventEmitter.emit(/* pass any necessary data here */);
+        //      ;
+
+
+        // });
+
 
         reservationGroup.on("dblclick", () => {
             this.openReservationModal(selectedRoom, startDate, endDate, dialog);
@@ -307,13 +401,8 @@ export class ReservationCell {
 
 
         reservationGroup.on('dragmove', limitDragmove);
-        // text.on('dragmove', limitDragmove);
-        // reservationGroup.on('dragmove', () => {
-        //     console.log(reservationGroup.y())
-        //     reservationGroup.y(this.cellHeight + 60);
-        //   });
 
-        // Math.max(blueGroup.y(), 50)
+
 
 
     }
@@ -360,17 +449,31 @@ export class ReservationCell {
     }
 
 
+
+
     private findBooking(
         selectedRoom: Room,
         startDate: Date,
-        endDate: Date
+        // endDate: Date
     ): Booking | undefined {
         return this.bookings.find(booking =>
             booking.roomId === selectedRoom.roomId &&
-            booking.startDate.getTime() === startDate.getTime() &&
-            booking.endDate.getTime() === endDate.getTime()
+            booking.startDate.getTime() === startDate.getTime()
+            // booking.endDate.getTime() === endDate.getTime()
         );
     }
+
+    private findBooking2(
+        row: number,
+        date: Date,
+    ): Booking | undefined {
+        return this.bookings.find(booking =>
+            booking.roomId === row &&
+            booking.startDate.getTime() <= date.getTime() &&
+            booking.endDate.getTime() >= date.getTime()
+        );
+    }
+
 
     private openReservationModal(
         room: Room,
@@ -382,7 +485,7 @@ export class ReservationCell {
             data: {
                 roomid: room.roomId,
                 booking: {
-                    bookingId: this.findBooking(room, startDate, endDate)?.bookingId,
+                    bookingId: this.findBooking(room, startDate)?.bookingId,
                     roomId: room.roomId,
                     startDate: startDate,
                     endDate: endDate,

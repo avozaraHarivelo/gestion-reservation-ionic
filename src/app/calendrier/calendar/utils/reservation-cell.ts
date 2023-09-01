@@ -129,7 +129,7 @@ export class ReservationCell {
 
 
 
-        // this.addTransformer(draggableCell, text);
+         this.addTransformer(draggableCell, text);
 
         this.tableLayer.add(reservationGroup)
         return reservation;
@@ -163,14 +163,6 @@ export class ReservationCell {
                     ;
             }
         }
-
-        // this.tableStage.on('mousedown touchstart click', (e) => {
-        // do nothing if we mousedown on any shape
-
-        // console.log('tafiditra mousedown')
-
-        //   });
-        // this.createReservationBySelect()
     }
 
     public createReservationBySelect() {
@@ -185,27 +177,22 @@ export class ReservationCell {
         this.tableLayer.add(selectionRectangle);
 
         this.tableStage.on('mousedown touchstart', (e) => {
-            // do nothing if we mousedown on any shape
-            // if (e.target !== this.tableStage) {
-            //     return;
-            // }
-
-
-            e.evt.preventDefault();
-
-            x1 = this.tableStage.getPointerPosition()?.x;
-            y1 = this.tableStage.getPointerPosition()?.y;
-            x2 = this.tableStage.getPointerPosition()?.x;
-            y2 = this.tableStage.getPointerPosition()?.y;
-            // console.log(`depart  x1:${x1} y1:${y1} x2:${x2} y2:${y2}`)
-            selectionRectangle.visible(true);
-            selectionRectangle.width(0);
-            selectionRectangle.height(0);
+            if (e.evt.ctrlKey) { // Vérifie si la touche Ctrl est enfoncée lors du clic
+                e.evt.preventDefault();
+                x1 = this.tableStage.getPointerPosition()?.x;
+                y1 = this.tableStage.getPointerPosition()?.y;
+                x2 = this.tableStage.getPointerPosition()?.x;
+                y2 = this.tableStage.getPointerPosition()?.y;
+                selectionRectangle.visible(true);
+                selectionRectangle.width(0);
+                selectionRectangle.height(0);
+                
+            }
         });
 
         this.tableStage.on('mousemove touchmove', (e) => {
             // do nothing if we didn't start selection
-            if (!selectionRectangle.visible()) {
+            if (!selectionRectangle.visible() && e.evt.ctrlKey) {
                 return;
             }
             e.evt.preventDefault();
@@ -331,33 +318,14 @@ export class ReservationCell {
             x1 = this.tableStage.getPointerPosition()?.x;
             y1 = this.tableStage.getPointerPosition()?.y;
 
-            const rowStart = Math.round((y1! - 60 -this.cellHeight) / this.cellHeight);
+            const rowStart = Math.floor((y1! - 60 -this.cellHeight) / this.cellHeight);
             const colStart = Math.round((x1! - this.cellWidthRoom * 3) / this.cellWidthDay);
             const dateStart = this.limite == "année" ? Utility.getDateFromDayOfYear(this.currentYear, colStart) : new Date(this.currentYear, this.currentMonth, colStart);
 
             menuGroup.visible(false);
             this.reservationService.splitReservation(this.findBooking2(rowStart, dateStart))
-            this.myEventEmitter.emit(/* pass any necessary data here */);
+            this.myEventEmitter.emit();
         });
-        // document.getElementById('decoupe-button')?.addEventListener('click', () => {
-
-        //         console.log("event")
-        //         var x1: number | undefined;
-        //         var y1: number | undefined;
-
-        //         x1 = this.tableStage.getPointerPosition()?.x;
-        //         y1 = this.tableStage.getPointerPosition()?.y;
-
-        //         const rowStart = Math.round((y1! - 60 - this.cellHeight) / this.cellHeight);
-        //         const colStart = Math.round((x1! - this.cellWidthRoom * 3) / this.cellWidthDay);
-        //         const dateStart = this.limite == "année" ? Utility.getDateFromDayOfYear(this.currentYear, colStart) : new Date(this.currentYear, this.currentMonth, colStart);
-
-        //         // Emit the event using your custom EventEmitter
-        //         this.myEventEmitter.emit(/* pass any necessary data here */);
-        //      ;
-
-
-        // });
 
 
         reservationGroup.on("dblclick", () => {
@@ -394,7 +362,6 @@ export class ReservationCell {
             newPosition.y = Math.min(newPosition.y, maxY);
 
             e.target.position(newPosition);
-            // this.tableLayer.batchDraw();
         };
 
 
@@ -454,12 +421,10 @@ export class ReservationCell {
     private findBooking(
         selectedRoom: Room,
         startDate: Date,
-        // endDate: Date
     ): Booking | undefined {
         return this.bookings.find(booking =>
             booking.roomId === selectedRoom.roomId &&
             booking.startDate.getTime() === startDate.getTime()
-            // booking.endDate.getTime() === endDate.getTime()
         );
     }
 

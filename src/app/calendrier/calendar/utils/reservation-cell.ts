@@ -98,6 +98,8 @@ export class ReservationCell {
 
     ) {
 
+       
+
 
         const colStart = Math.floor((this.limite == "année" ? Utility.getDayOfYear(startDate) - 1 : startDate.getDate() - 1) * this.cellWidthDay);
         const colEnd = Math.floor((this.limite == "année" ? Utility.getDayOfYear(endDate) - 1 : endDate.getDate() - 1) * this.cellWidthDay);
@@ -134,17 +136,87 @@ export class ReservationCell {
         this.tableLayer.add(reservationGroup)
         return reservation;
     }
+    public createReservationCellBy(
+        selectedRoom: Room,
+        startDate: Date,
+        endDate: Date,
+        dialog: MatDialog
 
+    ) {
+
+        console.log(this.findBooking( selectedRoom,startDate)!= undefined)
+
+        if(this.findBooking( selectedRoom,startDate)!= undefined) return;
+
+
+        const colStart = Math.floor((this.limite == "année" ? Utility.getDayOfYear(startDate) - 1 : startDate.getDate() - 1) * this.cellWidthDay);
+        const colEnd = Math.floor((this.limite == "année" ? Utility.getDayOfYear(endDate) - 1 : endDate.getDate() - 1) * this.cellWidthDay);
+        const row = this.rooms.findIndex((room) => room.roomId === selectedRoom.roomId) + 1;
+        console.log(`colStart:${colStart} colEnd:${colEnd} row:${row} this.cellWidthDay:${this.cellWidthDay}`)
+
+        const draggableCell = this.createDraggableCell(colStart, colEnd, row);
+        const text = this.createText(selectedRoom, startDate, endDate);
+
+        let reservation: ReservationData = {
+            rect: draggableCell,
+            text: text,
+            row: row,
+            starDate: startDate,
+            endDate: endDate
+        };
+
+        var reservationGroup = new Konva.Group({
+            x: colStart + this.cellWidthRoom * 3,
+            y: row * this.cellHeight + 60,
+            draggable: true,
+        });
+
+        reservationGroup.add(draggableCell)
+        reservationGroup.add(text)
+
+        this.addEventListeners(reservationGroup, selectedRoom, startDate, endDate, dialog, this.tableStage);
+
+
+
+
+         this.addTransformer(draggableCell, text);
+
+        this.tableLayer.add(reservationGroup)
+
+        const vm = new Booking();
+        vm.bookingId = this.maxValue(this.bookings) + 1;
+        vm.roomId =selectedRoom.roomId;
+        vm.startDate = startDate;
+        vm.endDate = endDate;
+        vm.name = "nouvelle";
+        this.reservationService.addBooking(vm);
+        return reservation;
+    }
 
     private createResaBySelect(x: number, y: number, width: number, height: number) {
 
+
         // let startDate = this.limite == "année" ? : getDayOfMonth()
 
-        const rowStart = Math.round((y - 60 + this.cellHeight) / this.cellHeight);
+        const rowStart = (Math.round((y - 60 + this.cellHeight) / this.cellHeight))-1;
 
 
-        const colStart = Math.round((x - this.cellWidthRoom * 3) / this.cellWidthDay);
-        const colEnd = Math.round(((x + width) - this.cellWidthRoom * 3) / this.cellWidthDay);
+        const colStart = (Math.round((x - this.cellWidthRoom * 3) / this.cellWidthDay))+1;
+        const colEnd = (Math.round(((x + width) - this.cellWidthRoom * 3) / this.cellWidthDay))+1;
+
+        const startDate = this.limite == "année"?Utility.getDateFromDayOfYear(this.currentYear,colStart):new Date(this.currentYear,this.currentMonth,colStart);
+       
+       
+        const endDate =this.limite == "année"?Utility.getDateFromDayOfYear(this.currentYear,colEnd):new Date(this.currentYear,this.currentMonth,colEnd);
+        
+       
+        
+        this.createReservationCellBy(
+            this.rooms.find((room)=>room.roomId === rowStart)!,
+            startDate,
+            endDate,
+            this.dialog,
+        )
     }
 
     public createReservationCells(dialog: MatDialog) {
@@ -164,6 +236,15 @@ export class ReservationCell {
             }
         }
     }
+
+    private maxValue(list: Booking[]): number {
+        if (list.length === 0) {
+          return 0; // Valeur par défaut si le tableau est vide
+        }
+      
+        const bookingIds = list.map((p) => p.bookingId);
+        return Math.max(...bookingIds);
+      }
 
     public createReservationBySelect() {
         var x1: number | undefined;
@@ -217,7 +298,7 @@ export class ReservationCell {
             setTimeout(() => {
                 selectionRectangle.visible(false);
             });
-
+            this.createResaBySelect(Math.min(x1!, x2!), Math.min(y1!, y2!), Math.abs(x2! - x1!), Math.abs(y2! - y1!))
 
         });
     }
